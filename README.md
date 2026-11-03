@@ -1,5 +1,7 @@
 # byuwur/easy-yaml-viewer
 
+![easy-yaml-viewer preview](prev.jpg)
+
 **YAML, give structure clarity.**
 
 Explore mappings, sequences, scalar values, and aliases as a collapsible tree. Complex keys and shared or cyclic aliases keep their meaning.
@@ -188,7 +190,7 @@ node --check yaml.js
 node --test tests/rendering.cjs
 ```
 
-`BROWSER_CHANNEL=chrome` uses installed Chrome; `CHROMIUM_EXECUTABLE_PATH` selects a Chromium executable. Otherwise, install Playwright Chromium.
+`BROWSER_CHANNEL=chrome` uses installed Chrome; `CHROMIUM_EXECUTABLE_PATH` selects a Chromium executable. Otherwise, install Playwright Chromium. [GitHub Actions](.github/workflows/rendering.yml) runs the same suite.
 
 ## The easy viewers
 
