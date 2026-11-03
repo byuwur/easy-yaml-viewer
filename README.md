@@ -8,6 +8,10 @@ Use it for configuration files, manifests, and YAML documents with more structur
 
 One JavaScript file. One scoped stylesheet. No build step. The YAML parser is bundled; there is nothing extra to load.
 
+[Open the playground](https://byuwur.github.io/easy-yaml-viewer/)
+
+Open `index.html` for the local playground; its page assets require internet access.
+
 ## Parser trade-off
 
 `yaml.js` bundles unmodified [js-yaml 5.4.3](https://github.com/nodeca/js-yaml/releases/tag/5.4.3) in a private closure, including its MIT license. This makes it larger than the other viewers, but needs no extra scripts or global `jsyaml`.
@@ -39,6 +43,8 @@ The CDN example tracks `@main` and requires internet access. Use a published tag
 <link href="yaml.css" rel="stylesheet" />
 <script src="yaml.js" defer></script>
 ```
+
+Exported HTML starters use default settings, independently of playground changes.
 
 ## API and YAML behavior
 
@@ -133,6 +139,8 @@ High Contrast text colors target at least [7:1 contrast](https://www.w3.org/WAI/
 
 ### Make it yours
 
+**Custom theme CSS** starts with the selected palette's complete Light/Dark defaults, including controls and format-specific colors. Switching presets keeps your custom draft until Reset. On your page, use `data-theme="custom"` with `class="light"` or `class="dark"`.
+
 Define a named palette after the viewer stylesheet. Unspecified colors inherit Monokai:
 
 ```css
@@ -157,6 +165,10 @@ Define a named palette after the viewer stylesheet. Unspecified colors inherit M
 
 Named palettes need no JavaScript registration or extra theme files.
 
+In the playground configuration, `theme` is the mode, `palette` is its name, and `customThemeCSS` holds custom rules. Null appearance values inherit defaults. Pass only documented API options to the renderer.
+
+**Copy CSS** exports typography and individual color overrides. Inline colors override palette variables; clear them or Reset to restore palette defaults.
+
 Text-size controls change only this viewer, in `0.125rem` steps from `0.5rem` to `3rem`, independently of button size. **A** restores its initial size; re-rendering preserves the selected size.
 
 ### Legacy theme links
@@ -166,6 +178,8 @@ Legacy integrations can use `#byVIEWtheme` or a detected `yaml.light.css` / `yam
 ## Checks
 
 Theme tests cover both modes, container isolation, legacy links, custom CSS, and High Contrast. Clipboard tests use stubs; they do not verify real permissions.
+
+Landing tests fetch the pinned Bootstrap stylesheet unless `BOOTSTRAP_CSS_PATH` points to a cached copy.
 
 Install Playwright outside the repository and set `NODE_PATH` to its `node_modules` directory:
 
