@@ -1,0 +1,466 @@
+const assert = require("node:assert/strict");
+const path = require("node:path");
+const { pathToFileURL } = require("node:url");
+const test = require("node:test");
+const { chromium } = require("playwright");
+
+// Caller-provided legacy stylesheets reuse the canonical palettes without distribution files.
+const legacyThemeCSS = (theme) => {
+  const css = require("node:fs").readFileSync(path.join(__dirname, "../yaml.css"), "utf8");
+  const section = css.split(`/* --- ${theme.toUpperCase()} --- */`)[1];
+  return `.byYAMLdocument {${section.match(/\{([\s\S]*?)\}/)[1]}}`;
+};
+
+test("YAML standalone browser contracts", async (t) => {
+  const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || undefined, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
+  try {
+    const page = await browser.newPage();
+    const errors = [],
+      requests = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("request", (request) => {
+      if (/^https?:/.test(request.url()) && !request.url().startsWith("http://viewer.test/")) requests.push(request.url());
+    });
+    await page.route("http://viewer.test/**", (route) => {
+      const filename = new URL(route.request().url()).pathname.slice(1);
+      if (/^yaml\.(light|dark)\.css$/.test(filename)) return route.fulfill({ body: legacyThemeCSS(filename.includes(".dark.css") ? "dark" : "light"), contentType: "text/css" });
+      if (!filename || filename === "index.html")
+        return route.fulfill({
+          contentType: "text/html",
+          body: '<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="yaml.css"><script src="yaml.js"></script><div id="viewer" data-theme="light"></div>'
+        });
+      return route.fulfill({ path: path.join(__dirname, "..", filename), contentType: filename.endsWith(".css") ? "text/css" : "text/javascript" });
+    });
+    await page.goto("http://viewer.test/index.html");
+    await page.evaluate(
+      async ({ source, second, options }) => {
+        await byYAMLviewer(document.getElementById("viewer"), source, options).ready;
+      },
+      {
+        source:
+          "defaults: &defaults\n  active: true\n  retries: 3\nservice:\n  <<: *defaults\n  name: easy-yaml-viewer\n  tags: [small, standalone]\n  notes: |\n    Keep things simple.\n    Make them useful.\n",
+        options: { fontSizeControls: true,  collapsed: false, search: true, copyValues: true }
+      }
+    );
+    await page.waitForFunction(() => document.getElementById("viewer")?.getAttribute("aria-busy") !== "true" && typeof window.byYAMLviewer === "function");
+    await page.evaluate(() => {
+      window.root = document.getElementById("viewer");
+      window.copies = [];
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (value) => copies.push(value) } });
+    });
+    await t.test("themes, copy, font size, and responsive controls", async () => {
+      assert.equal(await page.locator("#viewer [role=alert]:visible").count(), 0);
+      await page.locator(".byVIEWcopy").click();
+      assert.equal(await page.evaluate(() => typeof copies.at(-1)), "string");
+      await page.getByRole("button", { name: "Switch to dark theme" }).click();
+      await page.waitForFunction(() => getComputedStyle(root).backgroundColor === "rgb(39, 40, 34)");
+      await page.getByRole("button", { name: "Increase text size" }).click();
+      assert.equal(await page.evaluate(() => root.style.fontSize), "1.125rem");
+      await page.setViewportSize({ width: 320, height: 640 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await page.setViewportSize({ width: 1100, height: 800 });
+      await page.getByRole("button", { name: "Reset text size" }).click();
+    });
+    await t.test("clipboard denial is reported", async () => {
+      await page.evaluate(() => {
+        navigator.clipboard.writeText = async () => {
+          throw new Error("denied");
+        };
+      });
+      await page.locator(".byVIEWcopy").click();
+      assert.equal(await page.locator(".byVIEWcopy").textContent(), "Failed");
+      await page.evaluate(() => {
+        navigator.clipboard.writeText = async (value) => copies.push(value);
+      });
+    });
+
+    await t.test("real parser supports types, block scalars, aliases, merges, and documents", async () => {
+      const result = await page.evaluate(() => {
+        const docs = byYAMLviewer.parse('base: &base {enabled: true, retries: 3}\ncopy: *base\nmerged: {<<: *base, name: viewer}\ntext: |\n  first\n  second\n---\n[null, false, 0, "001", .nan]');
+        return {
+          map: docs[0] instanceof Map,
+          alias: docs[0].get("base") === docs[0].get("copy"),
+          merge: docs[0].get("merged").get("enabled"),
+          block: docs[0].get("text"),
+          types: docs[1].slice(0, 4),
+          nan: Number.isNaN(docs[1][4]),
+          empty: byYAMLviewer.parse("").length
+        };
+      });
+      assert.deepEqual(result, { map: true, alias: true, merge: true, block: "first\nsecond\n", types: [null, false, 0, "001"], nan: true, empty: 0 });
+    });
+    await t.test("complex keys and cyclic aliases are represented without expansion", async () => {
+      const result = await page.evaluate(async () => {
+        const docs = byYAMLviewer.parse("? [a, b]\n: {value: 1}\ncycle: &self [*self]");
+        const complex = [...docs[0].keys()].find(Array.isArray);
+        const cycle = docs[0].get("cycle");
+        const view = byYAMLviewer(root, "? [a, b]\n: {value: 1}\ncycle: &self [*self]", { search: true, copyValues: true, expandCollapse: true });
+        await view.ready;
+        return {
+          key: complex.join(","),
+          value: docs[0].get(complex).get("value"),
+          cycle: cycle[0] === cycle,
+          text: root.querySelector(".byYAMLtree").textContent,
+          count: root.querySelectorAll(".byYAMLnode").length
+        };
+      });
+      assert.equal(result.key, "a,b");
+      assert.equal(result.value, 1);
+      assert.equal(result.cycle, true);
+      assert.match(result.text, /complex key/);
+      assert.match(result.text, /reference/);
+      assert.ok(result.count < 20);
+      await page.locator(".byYAMLheader button").first().click();
+      assert.equal(
+        await page.evaluate(() => {
+          const parsed = byYAMLviewer.parse(copies.at(-1))[0];
+          return parsed.get("cycle")[0] === parsed.get("cycle");
+        }),
+        true
+      );
+      await page.getByRole("searchbox", { name: "Search YAML" }).fill("reference");
+      await page.waitForFunction(() => document.querySelectorAll(".byYAMLnode").length === 3);
+      assert.match(await page.locator(".byYAMLtree").textContent(), /reference #/);
+    });
+    await t.test("collapse, search, source copy, and exact multiline value copying", async () => {
+      await page.evaluate(async () => {
+        window.yamlSource = "branch:\n  needle: |\n    a\n    b\nother: hidden";
+        await byYAMLviewer(root, yamlSource, { search: true, copyValues: true, expandCollapse: true, collapsed: true }).ready;
+      });
+      assert.equal(await page.locator("details[open]").count(), 0);
+      await page.getByRole("button", { name: "Expand all YAML nodes" }).click();
+      await page
+        .locator(".byYAMLheader")
+        .filter({ has: page.locator(".byYAMLkey", { hasText: '"needle"' }) })
+        .getByRole("button", { name: "Copy YAML value", exact: true })
+        .click();
+      assert.equal(await page.evaluate(() => copies.at(-1)), "a\nb\n");
+      await page.locator(".byVIEWcopy").click();
+      assert.equal(await page.evaluate(() => copies.at(-1) === yamlSource), true);
+      await page.getByRole("searchbox", { name: "Search YAML" }).fill("needle");
+      await page.waitForFunction(() => document.querySelectorAll(".byYAMLnode").length === 3);
+      assert.equal(await page.locator("details[open]").count(), 2);
+      assert.doesNotMatch(await page.locator(".byYAMLtree").textContent(), /hidden/);
+    });
+    await t.test("malformed input, duplicate/unsafe tags, limits, and prototype keys", async () => {
+      const result = await page.evaluate(async () => {
+        const bad = [];
+        for (const source of ["a: [unclosed", "a: 1\na: 2", 'x: !!js/function "function(){window.injected=1}"', "a: ".repeat(110) + "1", "a: &x [1]\nb: [" + Array(1001).fill("*x").join(",") + "]"])
+          bad.push(await byYAMLviewer(root, source).ready);
+        const safe = byYAMLviewer.parse("__proto__: {polluted: true}\nconstructor: x")[0];
+        await byYAMLviewer(root, 'x: "<img src=x onerror=window.injected=1>"').ready;
+        return { bad, prototype: safe.get("__proto__").get("polluted"), polluted: Boolean({}.polluted), safe: !root.querySelector("img") && !window.injected };
+      });
+      assert.deepEqual(result, { bad: [false, false, false, false, false], prototype: true, polluted: false, safe: true });
+    });
+    await t.test("container copying, large documents, cancellation, and private parser scope", async () => {
+      const result = await page.evaluate(async () => {
+        const large = `items:\n${Array.from({ length: 2500 }, (_, i) => `  - {id: ${i}, value: item}`).join("\n")}`;
+        let tick = false;
+        setTimeout(() => {
+          tick = true;
+        }, 0);
+        const view = byYAMLviewer(root, large, { collapsed: true });
+        const ready = await view.ready;
+        const count = root.querySelectorAll(".byYAMLnode").length;
+        const old = byYAMLviewer(root, large),
+          current = byYAMLviewer(root, "name: new", { copyValues: true });
+        const cancelled = await old.ready;
+        await current.ready;
+        root.querySelector("summary button").click();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        const containerCopied = copies.at(-1).includes("name: new");
+        old.destroy();
+        const preserved = root.textContent.includes("new");
+        current.destroy();
+        return { tick, ready, count, cancelled, preserved, containerCopied, disposed: root.childNodes.length === 0, global: typeof window.jsyaml };
+      });
+      assert.deepEqual(result, { tick: true, ready: true, count: 7502, cancelled: false, preserved: true, containerCopied: true, disposed: true, global: "undefined" });
+    });
+
+    await t.test("duplicate loading and source independence", async () => {
+      await page.evaluate(() => {
+        window.original = byYAMLviewer;
+      });
+      await page.addScriptTag({ path: path.join(__dirname, "../yaml.js") });
+      assert.equal(await page.evaluate(() => original === byYAMLviewer), true);
+      assert.deepEqual(requests, []);
+      assert.deepEqual(errors, []);
+    });
+  } finally {
+    await browser.close();
+  }
+});
+
+test("container themes are scoped, independent, and compatible with legacy links", async () => {
+  const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || undefined, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
+  try {
+    const page = await browser.newPage();
+    const requests = [];
+    page.on("request", (request) => requests.push(request.url()));
+    await page.setContent('<div id="outside" class="dark">Host</div><div id="first" data-theme="dark"></div><div id="second" class="light"></div><div id="third"></div>');
+    await page.addStyleTag({ path: path.join(__dirname, "../yaml.css") });
+    await page.addScriptTag({ path: path.join(__dirname, "../yaml.js") });
+    await page.evaluate(async (args) => {
+      window.renderTheme = async (element) => {
+        const controller = window.byYAMLviewer(element, ...args);
+        if (controller?.ready) await controller.ready;
+      };
+      for (const id of ["first", "second", "third"]) await renderTheme(document.getElementById(id));
+    }, ["message: Local theme"]);
+    const color = (id) => page.locator("#" + id).evaluate((element) => getComputedStyle(element).backgroundColor);
+    assert.equal(await color("first"), "rgb(39, 40, 34)");
+    assert.equal(await color("second"), "rgb(250, 250, 245)");
+    assert.equal(await page.locator("#outside").evaluate((element) => getComputedStyle(element).getPropertyValue("--by-view-muted")), "");
+    assert.equal(await page.locator("#first .byVIEWtoolbar").evaluate((element) => getComputedStyle(element).getPropertyValue("--by-view-muted").trim()), "#75715e");
+    await page.locator("#first .byVIEWthemeToggle").click();
+    assert.equal(await page.locator("#first").getAttribute("data-theme"), "light");
+    assert.equal(await color("second"), "rgb(250, 250, 245)");
+    await page.locator("#second .byVIEWthemeToggle").click();
+    assert.equal(await page.locator("#second").getAttribute("class").then((classes) => classes.split(/\s+/).includes("dark")), true);
+    assert.equal(await page.locator("#second").getAttribute("data-theme"), null);
+    assert.equal(await color("second"), "rgb(39, 40, 34)");
+    await page.evaluate(async () => {
+      const second = document.getElementById("second");
+      second.dataset.theme = "light";
+      await renderTheme(second);
+    });
+    assert.equal(await color("second"), "rgb(250, 250, 245)");
+    await page.evaluate(() => {
+      const first = document.getElementById("first");
+      first.style.setProperty("--by-view-bg", "#123456");
+    });
+    assert.equal(await color("first"), "rgb(18, 52, 86)");
+    assert.equal(await color("second"), "rgb(250, 250, 245)");
+    await page.evaluate(() => document.getElementById("first").style.removeProperty("--by-view-bg"));
+    assert.equal(requests.length, 0, "Container theme changes must not fetch stylesheets");
+
+    await page.route("https://legacy.test/**", (route) => route.fulfill({ body: legacyThemeCSS(route.request().url().includes(".dark.css") ? "dark" : "light"), contentType: "text/css" }));
+    await page.evaluate(async () => {
+      const second = document.getElementById("second");
+      second.removeAttribute("data-theme");
+      second.classList.remove("light", "dark");
+      await new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.id = "byVIEWtheme";
+        link.rel = "stylesheet";
+        link.href = "https://legacy.test/yaml.light.css?cache=1#theme";
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.appendChild(link);
+      });
+      await renderTheme(second);
+      await renderTheme(document.getElementById("third"));
+    });
+    await page.locator("#second .byVIEWthemeToggle").click();
+    await page.waitForFunction(() => getComputedStyle(document.getElementById("second")).backgroundColor === "rgb(39, 40, 34)");
+    assert.equal(await color("third"), "rgb(39, 40, 34)");
+    assert.equal(await color("first"), "rgb(250, 250, 245)");
+    assert.equal(await page.locator("#first .byVIEWthemeToggle").getAttribute("aria-label"), "Switch to dark theme");
+    assert.equal(await page.locator("#byVIEWtheme").getAttribute("href"), "https://legacy.test/yaml.dark.css?cache=1#theme");
+    await page.evaluate(async () => {
+      document.getElementById("byVIEWtheme").remove();
+      await renderTheme(document.getElementById("second"));
+    });
+    await page.locator("#second .byVIEWthemeToggle").click();
+    assert.equal(await page.locator("#second").getAttribute("data-theme"), "dark");
+    assert.equal(await color("third"), "rgb(250, 250, 245)");
+  } finally {
+    await browser.close();
+  }
+});
+
+test("named palettes retain mode, isolate custom CSS, and meet High Contrast targets", async () => {
+  const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || undefined, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
+  try {
+    const page = await browser.newPage();
+    await page.setContent('<div id="outside">Host</div><div id="viewer"></div><div id="other" data-theme="dark"></div>');
+    await page.addStyleTag({ path: path.join(__dirname, "../yaml.css") });
+    await page.addScriptTag({ path: path.join(__dirname, "../yaml.js") });
+    await page.evaluate(async (args) => {
+      window.renderPalette = async (id) => {
+        const controller = window.byYAMLviewer(document.getElementById(id), ...args);
+        if (controller?.ready) await controller.ready;
+      };
+      await renderPalette("viewer");
+      await renderPalette("other");
+    }, ["name: Theme\nactive: true"]);
+    const root = page.locator("#viewer");
+    const background = () => root.evaluate((element) => getComputedStyle(element).backgroundColor);
+    assert.equal(await background(), "rgb(250, 250, 245)", "Default remains Monokai Light");
+    for (const [palette, colors] of Object.entries({
+      monokai: ["rgb(250, 250, 245)", "rgb(39, 40, 34)"],
+      github: ["rgb(255, 255, 255)", "rgb(13, 17, 23)"],
+      solarized: ["rgb(253, 246, 227)", "rgb(0, 43, 54)"],
+      "high-contrast": ["rgb(255, 255, 255)", "rgb(0, 0, 0)"]
+    })) {
+      await root.evaluate((element, palette) => {
+        element.dataset.theme = palette;
+        element.classList.remove("light", "dark");
+      }, palette);
+      assert.equal(await background(), colors[0], palette);
+      await root.locator(".byVIEWthemeToggle").click();
+      assert.equal(await root.getAttribute("data-theme"), palette);
+      assert.equal(await background(), colors[1], palette);
+      await page.evaluate(() => renderPalette("viewer"));
+      assert.equal(await background(), colors[1], "Rendering preserves the palette and mode");
+      await root.locator(".byVIEWthemeToggle").click();
+      assert.equal(await background(), colors[0]);
+    }
+    for (const mode of ["light", "dark"]) {
+      await root.evaluate((element, mode) => {
+        element.classList.toggle("dark", mode === "dark");
+        element.classList.toggle("light", mode === "light");
+      }, mode);
+      await root.locator(".byVIEWcopy").focus();
+      const measurements = await root.evaluate((element) => {
+        const style = getComputedStyle(element);
+        const luminance = (color) => {
+          const channels = color.startsWith("#")
+            ? color.slice(1).match(/../g).map((part) => parseInt(part, 16))
+            : color.match(/[\d.]+/g).slice(0, 3).map(Number);
+          const values = channels.map((channel) => channel / 255).map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+          return values[0] * 0.2126 + values[1] * 0.7152 + values[2] * 0.0722;
+        };
+        const contrast = (a, b) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05);
+        const variables = [...style].filter((property) => property.startsWith("--by-")).map((property) => [property, style.getPropertyValue(property).trim()]);
+        const backgrounds = [style.backgroundColor, ...variables.filter(([property]) => /-(?:alt|code-bg|add|remove)$/.test(property)).map(([, value]) => value)];
+        const text = variables.filter(([property, value]) => /^#[0-9a-f]{6}$/i.test(value) && !/-(?:bg|border|alt|add|remove)$/.test(property));
+        const button = getComputedStyle(element.querySelector(".byVIEWcopy"));
+        return {
+          text: text.flatMap(([property, value]) => backgrounds.map((bg) => ({ property, ratio: contrast(value, bg) }))),
+          border: contrast(button.borderTopColor, style.backgroundColor),
+          focus: contrast(button.outlineColor, style.backgroundColor),
+          outline: parseFloat(button.outlineWidth)
+        };
+      });
+      assert.ok(measurements.text.length >= 5);
+      for (const { property, ratio } of measurements.text) assert.ok(ratio >= 7, mode + " " + property + ": " + ratio.toFixed(2));
+      assert.ok(measurements.border >= 3);
+      assert.ok(measurements.focus >= 3 && measurements.outline >= 2);
+    }
+    await root.evaluate((element) => {
+      element.classList.add("light", "dark");
+      element.dataset.theme = "github";
+    });
+    assert.equal(await background(), "rgb(13, 17, 23)", "Dark wins when both classes exist");
+    await root.evaluate((element) => { element.dataset.theme = "light"; });
+    assert.equal(await background(), "rgb(250, 250, 245)", "Legacy mode aliases override classes");
+    await page.addStyleTag({ content: '.byYAMLdocument.light[data-theme="ocean"] { --by-view-bg: #f3f8fc; } .byYAMLdocument.dark[data-theme="ocean"] { --by-view-bg: #102a43; }' });
+    await root.evaluate((element) => { element.dataset.theme = "ocean"; element.classList.remove("light", "dark"); });
+    await page.route("https://legacy.test/**", (route) => route.fulfill({ body: "", contentType: "text/css" }));
+    await page.evaluate(() => new Promise((resolve) => {
+      const link = document.createElement("link");
+      link.id = "byVIEWtheme";
+      link.rel = "stylesheet";
+      link.href = "https://legacy.test/yaml.dark.css?cache=1#theme";
+      link.onload = resolve;
+      document.head.appendChild(link);
+    }));
+    await page.evaluate(() => renderPalette("viewer"));
+    assert.equal(await background(), "rgb(250, 250, 245)", "An unclassified custom palette starts in Light");
+    await root.locator(".byVIEWthemeToggle").click();
+    assert.equal(await background(), "rgb(16, 42, 67)");
+    assert.equal(await root.getAttribute("data-theme"), "ocean");
+    assert.equal(await page.locator("#byVIEWtheme").getAttribute("href"), "https://legacy.test/yaml.dark.css?cache=1#theme");
+    assert.equal(await page.locator("#other").evaluate((element) => getComputedStyle(element).backgroundColor), "rgb(39, 40, 34)");
+    assert.equal(await page.locator("#outside").evaluate((element) => getComputedStyle(element).getPropertyValue("--by-view-muted")), "");
+
+  } finally {
+    await browser.close();
+  }
+});
+
+test("viewer defaults, optional tools, and copy feedback", async () => {
+  const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || undefined, executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
+  try {
+    const page = await browser.newPage({ viewport: { width: 320, height: 720 }, reducedMotion: "reduce" });
+    await page.setContent('<div id="viewer"></div>');
+    await page.addStyleTag({ path: path.join(__dirname, "../yaml.css") });
+    await page.addScriptTag({ path: path.join(__dirname, "../yaml.js") });
+    await page.evaluate((args) => {
+      window.renderUI = async (options = {}) => {
+        const result = byYAMLviewer(document.getElementById("viewer"), ...args, options);
+        await result?.ready;
+      };
+    }, ["needle: value\nbranch: [1, 2]"]);
+    await page.evaluate(() => renderUI());
+    assert.equal(await page.locator(".byVIEWcontrols button").count(), 5);
+    assert.equal(await page.locator(".byVIEWfontSizes").count(), 1);
+    assert.equal(await page.locator(".byVIEWactions :is(input, select, button):visible").count(), 0);
+    assert.equal(await page.locator(".byVIEWstatus:visible").count(), 1);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.evaluate(() => renderUI({ fontSizeControls: false, statusBar: false }));
+    assert.equal(await page.locator(".byVIEWfontSizes").count(), 0);
+    assert.equal(await page.locator(".byVIEWstatus:visible").count(), 0);
+    await page.evaluate(() => renderUI());
+    for (const scale of [1, 1.5]) {
+      for (const controlsSize of ["small", "regular", "large"]) {
+        for (const font of ["ui-monospace, monospace", "Georgia, serif"]) {
+          for (const mode of ["light", "dark"]) {
+            const errors = await page.evaluate(async ({ scale, controlsSize, font, mode }) => {
+              document.documentElement.style.fontSize = `${scale}rem`;
+              const host = document.getElementById("viewer");
+              host.dataset.theme = mode;
+              host.style.setProperty("--by-view-controls-font", font);
+              await renderUI({ controlsSize });
+              const button = host.querySelector(".byVIEWthemeToggle");
+              const rect = button.getBoundingClientRect();
+              const style = getComputedStyle(button), thumb = getComputedStyle(button, "::after");
+              const innerWidth = rect.width - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
+              const innerHeight = rect.height - parseFloat(style.borderTopWidth) - parseFloat(style.borderBottomWidth);
+              const position = (value, extent) => value.endsWith("%") ? parseFloat(value) * extent / 100 : parseFloat(value);
+              const centerX = rect.left + parseFloat(style.borderLeftWidth) + position(thumb.left, innerWidth);
+              const centerY = rect.top + parseFloat(style.borderTopWidth) + position(thumb.top, innerHeight);
+              const icons = [...button.querySelectorAll("svg")];
+              const icon = icons[mode === "dark" ? 1 : 0].getBoundingClientRect();
+              return [Math.abs(centerX - icon.x - icon.width / 2), Math.abs(centerY - icon.y - icon.height / 2), Math.abs(centerY - rect.y - rect.height / 2)];
+            }, { scale, controlsSize, font, mode });
+            assert.ok(errors.every((error) => error < 0.06), `${scale} ${controlsSize} ${font} ${mode}: ${errors}`);
+          }
+        }
+      }
+    }
+    await page.evaluate(async () => {
+      document.documentElement.style.fontSize = "";
+      document.getElementById("viewer").style.removeProperty("--by-view-controls-font");
+      await renderUI();
+    });
+    for (const mode of ["light", "dark"]) {
+      await page.locator("#viewer").evaluate((element, mode) => { element.dataset.theme = mode; }, mode);
+      await page.evaluate(() => renderUI({ toolbar: false, controlsPosition: "bottom", sorting: false, pagination: false, collapsible: false, details: false, lineNumbers: false, loadMore: false }));
+      assert.equal(await page.locator("#viewer :is(button, input, select, summary):visible").count(), 0);
+      assert.equal(await page.locator(".byVIEWtoolbar").count(), 0);
+      assert.equal(await page.locator("#viewer").evaluate((element) => element.classList.contains("byVIEWbottom")), false);
+      assert.match(await page.locator("#viewer").textContent(), /needle/);
+    }
+    await page.evaluate(() => renderUI({ expandCollapse: true, collapsible: false, collapsed: true }));
+    assert.equal(await page.locator("summary").count(), 0);
+    assert.equal(await page.getByRole("button", { name: /all YAML nodes/ }).count(), 0);
+    assert.match(await page.locator("#viewer").textContent(), /needle/);
+    await page.evaluate(() => renderUI({ credits: false }));
+    assert.equal(await page.locator(".byVIEWinfo").count(), 0);
+    assert.equal(await page.locator(".byVIEWcontrols button").count(), 5);
+    await page.evaluate(() => renderUI({ credits: false, themeToggle: false, fontSizeControls: false, copyButton: false }));
+    assert.equal(await page.locator(".byVIEWtoolbar").count(), 0);
+    await page.evaluate((options) => renderUI({ fontSizeControls: true, ...options }), {"search":true,"copyValues":true,"expandCollapse":true,"statusBar":true});
+    assert.equal(await page.locator(".byVIEWfontSize").count(), 3);
+    assert.equal(await page.locator(".byVIEWpanel > .byVIEWstatus:visible").count(), 1);
+    assert.ok(await page.locator(".byVIEWpanel > .byVIEWstatus").evaluate((status) => parseFloat(getComputedStyle(status).borderBottomWidth) > 0));
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw new Error("Denied"); } } });
+    });
+    await page.locator(".byVIEWcopy").click();
+    await page.mouse.move(0, 0);
+    await page.locator(".byVIEWcopy").evaluate((element) => element.blur());
+    assert.equal(await page.locator(".byVIEWcopy").getAttribute("data-state"), "error");
+    assert.equal(await page.locator(".byVIEWcopy").textContent(), "Failed");
+    await page.evaluate(() => { navigator.clipboard.writeText = async (value) => { window.copiedSource = value; }; });
+    await page.locator(".byVIEWcopy").click();
+    assert.equal(await page.locator(".byVIEWcopy").getAttribute("data-state"), "success");
+    assert.match(await page.evaluate(() => copiedSource), /needle/);
+  } finally {
+    await browser.close();
+  }
+});

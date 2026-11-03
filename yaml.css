@@ -1,0 +1,480 @@
+/* byuwur was here */
+
+/* Monokai is the default. Classes select mode; named data-theme values select a palette.
+   data-theme="light" / "dark" remain mode aliases and override mode classes. */
+
+/* --- LIGHT --- */
+.byYAMLdocument,
+.byYAMLdocument.light:not([data-theme="dark"]),
+.byYAMLdocument[data-theme="light"] {
+  color-scheme: light;
+  --by-view-toggle-position: 25%;
+  --by-view-muted: #8a8875;
+  --by-view-bg: #fafaf5;
+  --by-view-text: #272822;
+  --by-view-border: #d8d8c8;
+  --by-view-secondary: #686856;
+  --by-view-accent: #087f8c;
+  --by-view-alt: #eeeee4;
+  --by-view-string: #647d00;
+  --by-view-literal: #7c42b5;
+  --by-view-error: #c7255e;
+}
+
+/* --- DARK --- */
+.byYAMLdocument.dark:not([data-theme="light"]),
+.byYAMLdocument[data-theme="dark"] {
+  color-scheme: dark;
+  --by-view-toggle-position: 75%;
+  --by-view-muted: #75715e;
+  --by-view-bg: #272822;
+  --by-view-text: #f8f8f2;
+  --by-view-border: #49483e;
+  --by-view-secondary: #a6a28c;
+  --by-view-accent: #66d9ef;
+  --by-view-alt: #34352f;
+  --by-view-string: #e6db74;
+  --by-view-literal: #ae81ff;
+  --by-view-error: #f92672;
+}
+
+/* --- GITHUB --- */
+/* Light */
+.byYAMLdocument[data-theme="github"]:not(.dark) {
+  --by-view-muted: #59636e;
+  --by-view-bg: #ffffff;
+  --by-view-text: #1f2328;
+  --by-view-border: #8c959f;
+  --by-view-secondary: #59636e;
+  --by-view-accent: #0969da;
+  --by-view-alt: #f6f8fa;
+  --by-view-string: #0a3069;
+  --by-view-literal: #8250df;
+  --by-view-error: #a40e26;
+}
+/* Dark */
+.byYAMLdocument.dark[data-theme="github"] {
+  --by-view-muted: #9198a1;
+  --by-view-bg: #0d1117;
+  --by-view-text: #f0f6fc;
+  --by-view-border: #6e7681;
+  --by-view-secondary: #9198a1;
+  --by-view-accent: #58a6ff;
+  --by-view-alt: #161b22;
+  --by-view-string: #a5d6ff;
+  --by-view-literal: #d2a8ff;
+  --by-view-error: #ff7b72;
+}
+
+/* --- SOLARIZED --- */
+/* Light */
+.byYAMLdocument[data-theme="solarized"]:not(.dark) {
+  --by-view-muted: #657b83;
+  --by-view-bg: #fdf6e3;
+  --by-view-text: #586e75;
+  --by-view-border: #93a1a1;
+  --by-view-secondary: #657b83;
+  --by-view-accent: #268bd2;
+  --by-view-alt: #eee8d5;
+  --by-view-string: #859900;
+  --by-view-literal: #6c71c4;
+  --by-view-error: #dc322f;
+}
+/* Dark */
+.byYAMLdocument.dark[data-theme="solarized"] {
+  --by-view-muted: #839496;
+  --by-view-bg: #002b36;
+  --by-view-text: #93a1a1;
+  --by-view-border: #586e75;
+  --by-view-secondary: #839496;
+  --by-view-accent: #268bd2;
+  --by-view-alt: #073642;
+  --by-view-string: #859900;
+  --by-view-literal: #b58900;
+  --by-view-error: #dc322f;
+}
+
+/* --- HIGH CONTRAST --- */
+/* Light */
+.byYAMLdocument[data-theme="high-contrast"]:not(.dark) {
+  --by-view-muted: #333333;
+  --by-view-bg: #ffffff;
+  --by-view-text: #000000;
+  --by-view-border: #333333;
+  --by-view-secondary: #333333;
+  --by-view-accent: #0038a8;
+  --by-view-alt: #f0f0f0;
+  --by-view-string: #005a30;
+  --by-view-literal: #5c0066;
+  --by-view-error: #9b0000;
+}
+/* Dark */
+.byYAMLdocument.dark[data-theme="high-contrast"] {
+  --by-view-muted: #dddddd;
+  --by-view-bg: #000000;
+  --by-view-text: #ffffff;
+  --by-view-border: #ffffff;
+  --by-view-secondary: #dddddd;
+  --by-view-accent: #00ffff;
+  --by-view-alt: #171717;
+  --by-view-string: #ffff00;
+  --by-view-literal: #ffb5ff;
+  --by-view-error: #ffb3b3;
+}
+
+/* --- VIEWER --- */
+.byYAMLdocument {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 1rem 1.5rem;
+  border: 0.0625rem solid var(--by-view-border);
+  border-radius: var(--by-view-radius, 0.75rem);
+  background: var(--by-view-bg);
+  color: var(--by-view-text);
+  font:
+    1rem/1.4 system-ui,
+    sans-serif;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+
+/* --- CONTENT --- */
+.byYAMLdocument *,
+.byYAMLdocument *::before,
+.byYAMLdocument *::after {
+  box-sizing: border-box;
+}
+.byYAMLdocument .byVIEWcontent {
+  min-width: 0;
+  flex: 1 0 auto;
+}
+.byYAMLdocument button,
+.byYAMLdocument input,
+.byYAMLdocument select {
+  max-width: 100%;
+  margin: 0;
+  padding: 0.25em 0.5em;
+  border: 0.0625rem solid var(--by-view-border);
+  border-radius: var(--by-view-radius, 0.65em);
+  background: var(--by-view-bg);
+  color: inherit;
+  font: inherit;
+}
+.byYAMLdocument button {
+  cursor: pointer;
+}
+.byYAMLdocument button:hover {
+  background: var(--by-view-alt);
+}
+.byYAMLdocument button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.byYAMLdocument :is(button, input, select, summary):focus-visible {
+  outline: 0.125rem solid var(--by-view-accent);
+  outline-offset: 0.125rem;
+}
+.byYAMLdocument input[type="search"] {
+  min-width: 0;
+  width: 15em;
+}
+.byYAMLdocument input[type="checkbox"] {
+  accent-color: var(--by-view-accent);
+}
+.byYAMLdocument .byVIEWstatus {
+  margin: 0.6em 0;
+  color: var(--by-view-secondary);
+  font:
+    0.85em/1.4 system-ui,
+    sans-serif;
+}
+.byYAMLdocument .byVIEWerror {
+  color: var(--by-view-error, #ba2531);
+  white-space: pre-wrap;
+}
+.byYAMLdocument summary {
+  cursor: pointer;
+}
+.byYAMLdocument [hidden] {
+  display: none !important;
+}
+.byYAMLdocument .byYAMLtree {
+  font: 0.9em/var(--by-view-line-height, 1.5) var(--by-view-content-font, ui-monospace, monospace);
+  margin: 0;
+  padding: 0.375em 0.5em;
+}
+.byYAMLdocument .byYAMLchildren {
+  padding-left: 1.25em;
+  margin-left: 0.25em;
+  border-left: 0.0625rem dotted var(--by-view-border);
+}
+.byYAMLdocument .byYAMLnode {
+  margin: 0.35em 0;
+}
+.byYAMLdocument .byYAMLkey {
+  color: var(--by-view-accent);
+}
+.byYAMLdocument .byYAMLvalue {
+  color: var(--by-view-literal);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.byYAMLdocument .byYAMLstring {
+  color: var(--by-view-string);
+}
+.byYAMLdocument .byYAMLtype {
+  color: var(--by-view-secondary);
+  font:
+    0.7rem/1.2 system-ui,
+    sans-serif;
+  margin-left: 0.5em;
+}
+.byYAMLdocument .byYAMLheader > button {
+  font:
+    0.7rem/1.2 system-ui,
+    sans-serif;
+  margin-left: 0.5em;
+}
+.byYAMLdocument .byVIEWpanel {
+  min-width: 0;
+  margin: 0.375em 0;
+  overflow: hidden;
+  border: 0.0625rem solid var(--by-view-border);
+  border-radius: var(--by-view-radius, 0.65em);
+}
+.byYAMLdocument .byVIEWpanel > .byVIEWstatus {
+  margin: 0;
+  padding: 0.375em 0.625em;
+  border-bottom: 0.0625rem solid var(--by-view-border);
+  background: var(--by-view-alt);
+}
+.byYAMLdocument .byVIEWpanel > :focus-visible {
+  outline-offset: -0.125rem;
+}
+
+/* --- CONTROLS --- */
+.byYAMLdocument > .byVIEWtoolbar {
+  position: sticky;
+  flex-shrink: 0;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25em;
+  margin: 0;
+  padding: 0.5rem 0;
+  background: var(--by-view-bg);
+  font: 0.875rem/1.25 var(--by-view-controls-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace);
+  white-space: normal;
+}
+.byYAMLdocument > .byVIEWtoolbar[data-size="small"] {
+  font-size: 0.7rem;
+}
+.byYAMLdocument > .byVIEWtoolbar[data-size="large"] {
+  font-size: 1rem;
+}
+.byYAMLdocument.byVIEWbottom {
+  padding-top: 1rem;
+  padding-bottom: 0;
+}
+.byYAMLdocument.byVIEWcompact > .byVIEWtoolbar {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.byYAMLdocument.byVIEWbottom > .byVIEWtoolbar {
+  top: auto;
+  bottom: 0;
+  flex-direction: column-reverse;
+}
+.byYAMLdocument.byVIEWcompact.byVIEWbottom > .byVIEWtoolbar {
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWinfo {
+  max-width: 100%;
+  color: var(--by-view-muted);
+  opacity: 0.25;
+  font-size: 0.75em;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWinfo:hover,
+.byYAMLdocument > .byVIEWtoolbar .byVIEWinfo:focus-within,
+.byYAMLdocument[data-theme="high-contrast"] > .byVIEWtoolbar .byVIEWinfo {
+  opacity: 1;
+}
+.byYAMLdocument.byVIEWcompact > .byVIEWtoolbar .byVIEWinfo {
+  flex: 1 1 auto;
+  text-align: left;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWinfo a {
+  color: inherit;
+  text-decoration: none;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWinfo a:hover,
+.byYAMLdocument > .byVIEWtoolbar .byVIEWinfo a:focus-visible {
+  text-decoration: underline;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWcontrols {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.375em;
+  margin-left: auto;
+  max-width: 100%;
+}
+.byYAMLdocument > .byVIEWtoolbar button {
+  flex-shrink: 0;
+  min-width: 2em;
+  height: 2em;
+  margin: 0;
+  padding: 0.25em 0.5em;
+  border: 0.0625rem solid var(--by-view-border);
+  border-radius: var(--by-view-radius, 0.65em);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.byYAMLdocument > .byVIEWtoolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.byYAMLdocument > .byVIEWtoolbar button:focus-visible {
+  outline: 0.125rem solid currentColor;
+  outline-offset: 0.125rem;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWfontSizes {
+  display: flex;
+  padding: 0.0625em;
+  gap: 0.0625em;
+  border: 0.0625rem solid var(--by-view-border);
+  border-radius: var(--by-view-radius, 0.65em);
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWfontSize {
+  width: 1.875em;
+  padding: 0.125em;
+  border: 0;
+  border-radius: 0.4em;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWcopy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWcopy svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWthemeToggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  place-items: center;
+  width: calc(3.5em - 0.125rem);
+  height: 1.75em;
+  padding: 0;
+  border-radius: 2em;
+  font-family: ui-monospace, monospace;
+  font-variant-emoji: text;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWthemeToggle svg {
+  width: 1.25em;
+  height: 1.25em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.byYAMLdocument > .byVIEWtoolbar .byVIEWthemeToggle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: var(--by-view-toggle-position);
+  width: calc(1.5em - 0.125rem);
+  height: calc(1.5em - 0.125rem);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  border-radius: 50%;
+  background: currentColor;
+  transition: left 0.2s;
+}
+
+.byYAMLdocument .byVIEWactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375em;
+  max-width: 100%;
+}
+
+.byYAMLdocument .byVIEWactions,
+.byYAMLdocument .byVIEWcontent :is(button, input, select) {
+  font-family: var(--by-view-controls-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace);
+}
+
+/* --- INTERACTION --- */
+.byYAMLdocument button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 0.15s, box-shadow 0.15s;
+}
+.byYAMLdocument button:not(:disabled):hover {
+  background: color-mix(in srgb, currentColor 7%, var(--by-view-bg));
+}
+.byYAMLdocument button:not(:disabled):active {
+  background: color-mix(in srgb, currentColor 13%, var(--by-view-bg));
+}
+.byYAMLdocument button:focus-visible {
+  outline: 0.125rem solid var(--by-view-accent);
+  outline-offset: 0.125rem;
+}
+.byYAMLdocument button[data-state="success"] {
+  border-color: var(--by-view-accent);
+  box-shadow: inset 0 0 0 0.0625rem var(--by-view-accent);
+}
+.byYAMLdocument button[data-state="error"] {
+  border-color: currentColor;
+  border-style: dashed;
+}
+.byYAMLdocument .byVIEWactions:empty {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .byYAMLdocument button,
+  .byYAMLdocument .byVIEWthemeToggle::after {
+    transition: none;
+  }
+}
+.byYAMLdocument .byVIEWactions {
+  gap: 0.375em;
+  margin: 0.25em 0 0.5em;
+  font-size: 0.8125rem;
+}
+.byYAMLdocument .byVIEWactions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.byYAMLdocument .byVIEWactions input[type="search"] {
+  flex: 1 1 12em;
+  width: auto;
+}
+.byYAMLdocument :is(input, select) {
+  min-height: 2em;
+}
+.byYAMLdocument input[type="checkbox"] {
+  min-height: 0;
+}
