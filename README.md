@@ -27,8 +27,8 @@ Uses YAML 1.2 CORE plus merge keys and real JavaScript Maps (`CORE_SCHEMA.withTa
 **Recommended: CDN.** No downloads or package manager.
 
 ```html
-<link href="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@main/yaml.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@main/yaml.js" defer></script>
+<link href="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.js" defer></script>
 <div id="viewer" data-theme="light"></div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -37,7 +37,7 @@ Uses YAML 1.2 CORE plus merge keys and real JavaScript Maps (`CORE_SCHEMA.withTa
 </script>
 ```
 
-The CDN example tracks `@main` and requires internet access. Use a published tag or commit to pin a version.
+The CDN example uses `@latest` and requires internet access. Use a published tag or commit to pin a version.
 
 **Local files:** For offline use, save `yaml.js` and `yaml.css` beside your HTML:
 
