@@ -7,7 +7,12 @@
  * MIT License (see LICENSE).
  */
 (function (global) {
+  /* --- INITIALIZATION --- */
   if (global.byYAMLviewer?.initialized) return;
+
+  /* --- METADATA --- */
+  byYAMLviewer.VERSION = "1"; // 2026-11-04
+  byYAMLviewer.PARSER_VERSION = "5.4.3"; // 2026-11-04
 
   /* Bundled js-yaml 5.4.3, private and unmodified.
 (The MIT License)
@@ -3768,9 +3773,12 @@ exports.visit = visit;
     return exports;
   })();
 
-  /* --- SETUP --- */
+  /* --- CONSTANTS --- */
+  const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
+
+  /* --- STATE --- */
   const instances = new WeakMap();
-  /* --- DOM HELPERS --- */
+  /* --- HELPERS --- */
   const node = (tag, className = "", text) => {
     const element = document.createElement(tag);
     element.className = className;
@@ -3814,69 +3822,6 @@ exports.visit = visit;
   };
   /** Yield at a chunk boundary so input events and replacement renders can run. */
   const pause = () => new Promise((resolve) => setTimeout(resolve, 0));
-
-  /* --- PARSING --- */
-  // Keep mappings as Maps for complex keys; allow core/merge tags without arbitrary constructors.
-  const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
-  const scalarText = (value) => (typeof value === "string" ? JSON.stringify(value) : value === null ? "null" : Number.isNaN(value) ? ".nan" : value === Infinity ? ".inf" : value === -Infinity ? "-.inf" : String(value));
-  const containerType = (value) => (value instanceof Map ? "mapping" : Array.isArray(value) ? "sequence" : null);
-  /** Index each container identity once so aliases and cycles become bounded references. */
-  const yamlRecords = (documents) => {
-    const records = [],
-      seen = new WeakMap(),
-      stack = [];
-    for (let i = documents.length - 1; i >= 0; i--) stack.push({ label: `Document ${i + 1}`, value: documents[i], parent: null });
-    while (stack.length) {
-      if (records.length >= 50000) throw new RangeError("YAML graph exceeds 50,000 displayed nodes.");
-      const record = stack.pop();
-      record.type = record.children ? "entry" : containerType(record.value) || (record.value === null ? "null" : typeof record.value);
-      record.index = records.length + 1;
-      record.search = `${record.label} ${record.type} ${containerType(record.value) || record.children ? "" : scalarText(record.value)}`.toLowerCase();
-      records.push(record);
-      const type = containerType(record.value);
-      if (type) {
-        // Identity, rather than equal content, distinguishes aliases and terminates cyclic graphs.
-        if (seen.has(record.value)) {
-          record.reference = seen.get(record.value);
-          record.search += ` reference #${record.reference}`;
-          continue;
-        }
-        seen.set(record.value, record.index);
-        record.children = [];
-        if (type === "sequence") record.value.forEach((value, index) => record.children.push({ label: `[${index}]`, value }));
-        else {
-          let index = 0;
-          for (const [key, value] of record.value) {
-            index++;
-            if (containerType(key))
-              record.children.push({
-                label: `Entry ${index} (complex key)`,
-                value: null,
-                children: [
-                  { label: "Key", value: key },
-                  { label: "Value", value }
-                ]
-              });
-            else record.children.push({ label: scalarText(key), value });
-          }
-        }
-      }
-      if (record.children) for (let i = record.children.length - 1; i >= 0; i--) stack.push({ ...record.children[i], parent: record });
-    }
-    return records;
-  };
-  /** Parse the permitted schema and enforce both source and graph limits shared by parse() and rendering. */
-  const readYAML = (source) => {
-    if (typeof source !== "string") throw new TypeError("YAML input must be a string.");
-    if (source.length > 1000000) throw new RangeError("YAML exceeds 1 million characters.");
-    const documents = YAMLparser.loadAll(source, { schema: yamlSchema, maxDepth: 100, maxAliases: 1000, maxTotalMergeKeys: 10000 });
-    if (documents.length > 100) throw new RangeError("YAML exceeds 100 documents.");
-    // The public parser shares graph limits with rendering, even when callers only request values.
-    return { documents, records: yamlRecords(documents) };
-  };
-  /** Copy strings exactly; serialize other values semantically rather than claiming to preserve YAML spelling. */
-  const copyYAML = (value) => (typeof value === "string" ? value : containerType(value) ? YAMLparser.dump(value, { schema: yamlSchema }) : scalarText(value));
-
 
   /* --- CONTROLS --- */
   // Mirrored across the family so each viewer can run without a shared runtime.
@@ -4037,6 +3982,67 @@ exports.visit = visit;
       }
     });
   };
+
+  /* --- PARSING --- */
+  // Keep mappings as Maps for complex keys; allow core/merge tags without arbitrary constructors.
+  const scalarText = (value) => (typeof value === "string" ? JSON.stringify(value) : value === null ? "null" : Number.isNaN(value) ? ".nan" : value === Infinity ? ".inf" : value === -Infinity ? "-.inf" : String(value));
+  const containerType = (value) => (value instanceof Map ? "mapping" : Array.isArray(value) ? "sequence" : null);
+  /** Index each container identity once so aliases and cycles become bounded references. */
+  const yamlRecords = (documents) => {
+    const records = [],
+      seen = new WeakMap(),
+      stack = [];
+    for (let i = documents.length - 1; i >= 0; i--) stack.push({ label: `Document ${i + 1}`, value: documents[i], parent: null });
+    while (stack.length) {
+      if (records.length >= 50000) throw new RangeError("YAML graph exceeds 50,000 displayed nodes.");
+      const record = stack.pop();
+      record.type = record.children ? "entry" : containerType(record.value) || (record.value === null ? "null" : typeof record.value);
+      record.index = records.length + 1;
+      record.search = `${record.label} ${record.type} ${containerType(record.value) || record.children ? "" : scalarText(record.value)}`.toLowerCase();
+      records.push(record);
+      const type = containerType(record.value);
+      if (type) {
+        // Identity, rather than equal content, distinguishes aliases and terminates cyclic graphs.
+        if (seen.has(record.value)) {
+          record.reference = seen.get(record.value);
+          record.search += ` reference #${record.reference}`;
+          continue;
+        }
+        seen.set(record.value, record.index);
+        record.children = [];
+        if (type === "sequence") record.value.forEach((value, index) => record.children.push({ label: `[${index}]`, value }));
+        else {
+          let index = 0;
+          for (const [key, value] of record.value) {
+            index++;
+            if (containerType(key))
+              record.children.push({
+                label: `Entry ${index} (complex key)`,
+                value: null,
+                children: [
+                  { label: "Key", value: key },
+                  { label: "Value", value }
+                ]
+              });
+            else record.children.push({ label: scalarText(key), value });
+          }
+        }
+      }
+      if (record.children) for (let i = record.children.length - 1; i >= 0; i--) stack.push({ ...record.children[i], parent: record });
+    }
+    return records;
+  };
+  /** Parse the permitted schema and enforce both source and graph limits shared by parse() and rendering. */
+  const readYAML = (source) => {
+    if (typeof source !== "string") throw new TypeError("YAML input must be a string.");
+    if (source.length > 1000000) throw new RangeError("YAML exceeds 1 million characters.");
+    const documents = YAMLparser.loadAll(source, { schema: yamlSchema, maxDepth: 100, maxAliases: 1000, maxTotalMergeKeys: 10000 });
+    if (documents.length > 100) throw new RangeError("YAML exceeds 100 documents.");
+    // The public parser shares graph limits with rendering, even when callers only request values.
+    return { documents, records: yamlRecords(documents) };
+  };
+  /** Copy strings exactly; serialize other values semantically rather than claiming to preserve YAML spelling. */
+  const copyYAML = (value) => (typeof value === "string" ? value : containerType(value) ? YAMLparser.dump(value, { schema: yamlSchema }) : scalarText(value));
 
   /* --- LIFECYCLE --- */
   // One instance owns the container; replacement disposes its pending work first.
@@ -4204,9 +4210,8 @@ exports.visit = visit;
     return { ready: state.ready, destroy: state.destroy };
   }
 
-  global.byYAMLviewer = byYAMLviewer;
-  byYAMLviewer.VERSION = "1";
-  byYAMLviewer.initialized = true;
   byYAMLviewer.parse = (source) => readYAML(source).documents;
-  byYAMLviewer.PARSER_VERSION = "5.4.3";
+  /* --- EXPORT --- */
+  global.byYAMLviewer = byYAMLviewer;
+  byYAMLviewer.initialized = true;
 })(typeof window !== "undefined" ? window : this);
