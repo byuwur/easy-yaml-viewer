@@ -66,12 +66,12 @@ Search matches displayed keys/scalars/types/references and expands ancestor path
 
 ## YAML options and limits
 
-| Option | Default | Behavior |
-| --- | --- | --- |
-| `collapsible` | `true` | Show disclosure controls; false keeps every node expanded. |
-| `collapsed` | `false` | Initially close collection disclosures. |
-| `search` | `false` | Case-insensitive substring search. Clearing restores initial collapse policy. |
-| `copyValues` | `false` | Show value copy buttons. |
+| Option        | Default | Behavior                                                                      |
+| ------------- | ------- | ----------------------------------------------------------------------------- |
+| `collapsible` | `true`  | Show disclosure controls; false keeps every node expanded.                    |
+| `collapsed`   | `false` | Initially close collection disclosures.                                       |
+| `search`      | `false` | Case-insensitive substring search. Clearing restores initial collapse policy. |
+| `copyValues`  | `false` | Show value copy buttons.                                                      |
 
 Expand/collapse affects displayed collections only. Limits: 1 million source characters, depth 100, 1,000 aliases per document, 10,000 total processed merge keys, 100 documents, and 50,000 displayed graph records. Shared containers are indexed once; parser-specific limits may reject input sooner.
 
@@ -83,20 +83,28 @@ The private `YAMLparser` block comes verbatim from `js-yaml@5.4.3/dist/js-yaml.c
 
 ## Shared controls and lifecycle
 
-| Option | Default | Behavior |
-| --- | --- | --- |
-| `toolbar` | `true` | Show the viewer header; secondary tools are configured separately. |
-| `credits` | `true` | Show attribution in the header. |
-| `statusBar` | `true` | Show counts and metadata. Loading, errors, and empty results remain visible. |
-| `expandCollapse` | `false` | Show Expand all / Collapse all. |
-| `themeToggle` | `true` | Show the theme toggle. |
-| `fontSizeControls` | `true` | Show text-size controls. |
-| `copyButton` | `true` | Show full source copy button. |
-| `controlsSize` | `"regular"` | `"small"`, `"regular"`, or `"large"`; invalid values use `"regular"`. |
-| `controlsCompact` | `true` | Keep credits beside controls; `false` stacks them. Wraps as needed. |
-| `controlsPosition` | `"top"` | Sticky `"top"` or `"bottom"` toolbar; invalid values use `"top"`. |
+| Option             | Default     | Behavior                                                                     |
+| ------------------ | ----------- | ---------------------------------------------------------------------------- |
+| `toolbar`          | `true`      | Show the viewer header; secondary tools are configured separately.           |
+| `credits`          | `true`      | Show attribution in the header.                                              |
+| `statusBar`        | `true`      | Show counts and metadata. Loading, errors, and empty results remain visible. |
+| `expandCollapse`   | `false`     | Show Expand all / Collapse all.                                              |
+| `themeToggle`      | `true`      | Show the theme toggle.                                                       |
+| `fontSizeControls` | `true`      | Show text-size controls.                                                     |
+| `copyButton`       | `true`      | Show full source copy button.                                                |
+| `controlsSize`     | `"regular"` | `"small"`, `"regular"`, or `"large"`; invalid values use `"regular"`.        |
+| `controlsCompact`  | `true`      | Keep credits beside controls; `false` stacks them. Wraps as needed.          |
+| `controlsPosition` | `"top"`     | Sticky `"top"` or `"bottom"` toolbar; invalid values use `"top"`.            |
 
 The controller exposes `ready` and `destroy()`. `ready` resolves `true` after initial rendering, or `false` on a displayed data error or cancellation. Invalid targets/options can throw synchronously.
+
+`ready` describes the initial render only; it does not track later searches or disclosure changes.
+
+```javascript
+const viewer = byYAMLviewer(target, yaml, { search: true });
+const rendered = await viewer.ready; // false on data errors or cancellation.
+viewer.destroy(); // Call when the host panel is removed.
+```
 
 Re-rendering disposes the previous instance. `destroy()` cancels pending work and clears the target only if the instance still owns it. Duplicate script loads preserve the API. Read its version with `byYAMLviewer.VERSION`.
 
@@ -108,7 +116,7 @@ Requires a modern browser with async functions, WeakMap, ES2022 array methods, a
 
 `--by-view-content-font` and `--by-view-line-height` set source/tree typography.
 
-The default header shows Theme, text-size controls, and Copy. Secondary tools are opt-in. Use `toolbar: false` to hide the header, or switch individual controls off as needed.
+Use `toolbar: false` to hide the header, or disable `credits`, `themeToggle`, `fontSizeControls`, and `copyButton` individually. Content actions such as search and format-specific buttons use their own options.
 
 Controls use monospace by default; override `--by-view-controls-font` to change it.
 
@@ -116,12 +124,12 @@ Controls use monospace by default; override `--by-view-controls-font` to change 
 
 `yaml.css` includes all palettes in Light and Dark. Monokai is the default.
 
-| Palette | `data-theme` | What it looks like |
-| --- | --- | --- |
-| Monokai (default) | `monokai` | Warm light and dark colors. |
-| GitHub | `github` | Familiar neutral surfaces and syntax colors. |
-| Solarized | `solarized` | Warm light or deep blue-green dark surfaces. |
-| High Contrast | `high-contrast` | Black/white surfaces, strong text, borders, and focus indicators. |
+| Palette           | `data-theme`    | What it looks like                                                |
+| ----------------- | --------------- | ----------------------------------------------------------------- |
+| Monokai (default) | `monokai`       | Warm light and dark colors.                                       |
+| GitHub            | `github`        | Familiar neutral surfaces and syntax colors.                      |
+| Solarized         | `solarized`     | Warm light or deep blue-green dark surfaces.                      |
+| High Contrast     | `high-contrast` | Black/white surfaces, strong text, borders, and focus indicators. |
 
 Use a mode class and a palette name together:
 
@@ -141,7 +149,7 @@ High Contrast text colors target at least [7:1 contrast](https://www.w3.org/WAI/
 
 ### Make it yours
 
-**Custom theme CSS** starts with the selected palette's complete Light/Dark defaults, including controls and format-specific colors. Switching presets keeps your custom draft until Reset. On your page, use `data-theme="custom"` with `class="light"` or `class="dark"`.
+The playground's **Custom theme CSS** field edits both modes of the selected palette. Export those rules to your own stylesheet and use `data-theme="custom"` with `class="light"` or `class="dark"`. Custom drafts stay in the playground; the renderer does not store them.
 
 Define a named palette after the viewer stylesheet. Unspecified colors inherit Monokai:
 
@@ -194,9 +202,11 @@ node --test tests/rendering.cjs
 
 ## The easy viewers
 
-Need a viewer for another format? Explore the family:
+Need another format, or a Markdown editor? Explore the family:
 
 [Markdown](https://github.com/byuwur/easy-md-viewer) · [JSON](https://github.com/byuwur/easy-json-viewer) · [CSV & TSV](https://github.com/byuwur/easy-csv-viewer) · [Logs](https://github.com/byuwur/easy-log-viewer) · [Diff](https://github.com/byuwur/easy-diff-viewer) · [XML](https://github.com/byuwur/easy-xml-viewer) · [YAML](https://github.com/byuwur/easy-yaml-viewer) · [Source code](https://github.com/byuwur/easy-code-viewer)
+
+[Write Markdown with easy-md-editor](https://github.com/byuwur/easy-md-editor).
 
 ## License
 

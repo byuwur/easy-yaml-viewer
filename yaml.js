@@ -33,7 +33,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
   */
-  /* --- SETUP --- */
+  /* --- EMBEDDED PARSER --- */
   const YAMLparser = (() => {
     const exports = {};
     /*! js-yaml 5.4.3 https://github.com/nodeca/js-yaml @license MIT */
@@ -3768,7 +3768,9 @@ exports.visit = visit;
     return exports;
   })();
 
+  /* --- SETUP --- */
   const instances = new WeakMap();
+  /* --- DOM HELPERS --- */
   const node = (tag, className = "", text) => {
     const element = document.createElement(tag);
     element.className = className;
@@ -3810,9 +3812,74 @@ exports.visit = visit;
     control.addEventListener("focusout", reset);
     return control;
   };
+  /** Yield at a chunk boundary so input events and replacement renders can run. */
   const pause = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+  /* --- PARSING --- */
+  // Keep mappings as Maps for complex keys; allow core/merge tags without arbitrary constructors.
+  const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
+  const scalarText = (value) => (typeof value === "string" ? JSON.stringify(value) : value === null ? "null" : Number.isNaN(value) ? ".nan" : value === Infinity ? ".inf" : value === -Infinity ? "-.inf" : String(value));
+  const containerType = (value) => (value instanceof Map ? "mapping" : Array.isArray(value) ? "sequence" : null);
+  /** Index each container identity once so aliases and cycles become bounded references. */
+  const yamlRecords = (documents) => {
+    const records = [],
+      seen = new WeakMap(),
+      stack = [];
+    for (let i = documents.length - 1; i >= 0; i--) stack.push({ label: `Document ${i + 1}`, value: documents[i], parent: null });
+    while (stack.length) {
+      if (records.length >= 50000) throw new RangeError("YAML graph exceeds 50,000 displayed nodes.");
+      const record = stack.pop();
+      record.type = record.children ? "entry" : containerType(record.value) || (record.value === null ? "null" : typeof record.value);
+      record.index = records.length + 1;
+      record.search = `${record.label} ${record.type} ${containerType(record.value) || record.children ? "" : scalarText(record.value)}`.toLowerCase();
+      records.push(record);
+      const type = containerType(record.value);
+      if (type) {
+        // Identity, rather than equal content, distinguishes aliases and terminates cyclic graphs.
+        if (seen.has(record.value)) {
+          record.reference = seen.get(record.value);
+          record.search += ` reference #${record.reference}`;
+          continue;
+        }
+        seen.set(record.value, record.index);
+        record.children = [];
+        if (type === "sequence") record.value.forEach((value, index) => record.children.push({ label: `[${index}]`, value }));
+        else {
+          let index = 0;
+          for (const [key, value] of record.value) {
+            index++;
+            if (containerType(key))
+              record.children.push({
+                label: `Entry ${index} (complex key)`,
+                value: null,
+                children: [
+                  { label: "Key", value: key },
+                  { label: "Value", value }
+                ]
+              });
+            else record.children.push({ label: scalarText(key), value });
+          }
+        }
+      }
+      if (record.children) for (let i = record.children.length - 1; i >= 0; i--) stack.push({ ...record.children[i], parent: record });
+    }
+    return records;
+  };
+  /** Parse the permitted schema and enforce both source and graph limits shared by parse() and rendering. */
+  const readYAML = (source) => {
+    if (typeof source !== "string") throw new TypeError("YAML input must be a string.");
+    if (source.length > 1000000) throw new RangeError("YAML exceeds 1 million characters.");
+    const documents = YAMLparser.loadAll(source, { schema: yamlSchema, maxDepth: 100, maxAliases: 1000, maxTotalMergeKeys: 10000 });
+    if (documents.length > 100) throw new RangeError("YAML exceeds 100 documents.");
+    // The public parser shares graph limits with rendering, even when callers only request values.
+    return { documents, records: yamlRecords(documents) };
+  };
+  /** Copy strings exactly; serialize other values semantically rather than claiming to preserve YAML spelling. */
+  const copyYAML = (value) => (typeof value === "string" ? value : containerType(value) ? YAMLparser.dump(value, { schema: yamlSchema }) : scalarText(value));
+
+
   /* --- CONTROLS --- */
+  // Mirrored across the family so each viewer can run without a shared runtime.
   /**
    * Adds container light/dark controls, retaining legacy stylesheet links as a fallback.
    * @param {HTMLElement} element Viewer container and theme owner.
@@ -3823,9 +3890,7 @@ exports.visit = visit;
   const appendThemeToggle = (element, controls, filename) => {
     const escapedFilename = filename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const themePattern = new RegExp(`^([^?#]*/)?${escapedFilename}\\.(light|dark)\\.css([?#].*)?$`, "i");
-    const stylesheet = [document.getElementById("byVIEWtheme"), ...document.querySelectorAll('link[rel~="stylesheet"]')].find(
-      (link) => link && themePattern.test(link.getAttribute("href") || "")
-    );
+    const stylesheet = [document.getElementById("byVIEWtheme"), ...document.querySelectorAll('link[rel~="stylesheet"]')].find((link) => link && themePattern.test(link.getAttribute("href") || ""));
     // Explicit container state takes precedence over a shared legacy stylesheet.
     const localTheme = (target) => {
       if (["light", "dark"].includes(target.dataset.theme)) return target.dataset.theme;
@@ -3838,11 +3903,11 @@ exports.visit = visit;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "byVIEWthemeToggle";
-    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 0 1 11.2 3 9 9 0 1 0 21 12.8Z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
+    button.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12.8A9 9 0 0 1 11.2 3 9 9 0 1 0 21 12.8Z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4m0-14.2-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
     const sync = () => {
       const next = getTheme() === "dark" ? "light" : "dark";
-      const toggles =
-        !localTheme(element) && legacyTheme() ? [button, ...document.querySelectorAll(".byYAMLdocument > .byVIEWtoolbar > .byVIEWcontrols > .byVIEWthemeToggle")] : [button];
+      const toggles = !localTheme(element) && legacyTheme() ? [button, ...document.querySelectorAll(".byYAMLdocument > .byVIEWtoolbar > .byVIEWcontrols > .byVIEWthemeToggle")] : [button];
       for (const toggle of toggles) {
         // A legacy link must not change the controls of independently themed viewers.
         if (toggle !== button && localTheme(toggle.closest(".byYAMLdocument"))) continue;
@@ -3975,6 +4040,7 @@ exports.visit = visit;
 
   /* --- LIFECYCLE --- */
   // One instance owns the container; replacement disposes its pending work first.
+  /** Replace the previous owner and return its cancellable state. Only the current owner may clear the host. */
   const mount = (element, options, getText) => {
     if (!(element instanceof HTMLElement)) throw new TypeError("byYAMLviewer: element must be an HTMLElement.");
     instances.get(element)?.destroy();
@@ -4032,65 +4098,8 @@ exports.visit = visit;
     return state;
   };
 
-  /* --- CONTENT --- */
-  const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
-  const scalarText = (value) =>
-    typeof value === "string" ? JSON.stringify(value) : value === null ? "null" : Number.isNaN(value) ? ".nan" : value === Infinity ? ".inf" : value === -Infinity ? "-.inf" : String(value);
-  const containerType = (value) => (value instanceof Map ? "mapping" : Array.isArray(value) ? "sequence" : null);
-  const yamlRecords = (documents) => {
-    const records = [],
-      seen = new WeakMap(),
-      stack = [];
-    for (let i = documents.length - 1; i >= 0; i--) stack.push({ label: `Document ${i + 1}`, value: documents[i], parent: null });
-    while (stack.length) {
-      if (records.length >= 50000) throw new RangeError("YAML graph exceeds 50,000 displayed nodes.");
-      const record = stack.pop();
-      record.type = record.children ? "entry" : containerType(record.value) || (record.value === null ? "null" : typeof record.value);
-      record.index = records.length + 1;
-      record.search = `${record.label} ${record.type} ${containerType(record.value) || record.children ? "" : scalarText(record.value)}`.toLowerCase();
-      records.push(record);
-      const type = containerType(record.value);
-      if (type) {
-        if (seen.has(record.value)) {
-          record.reference = seen.get(record.value);
-          record.search += ` reference #${record.reference}`;
-          continue;
-        }
-        seen.set(record.value, record.index);
-        record.children = [];
-        if (type === "sequence") record.value.forEach((value, index) => record.children.push({ label: `[${index}]`, value }));
-        else {
-          let index = 0;
-          for (const [key, value] of record.value) {
-            index++;
-            if (containerType(key))
-              record.children.push({
-                label: `Entry ${index} (complex key)`,
-                value: null,
-                children: [
-                  { label: "Key", value: key },
-                  { label: "Value", value }
-                ]
-              });
-            else record.children.push({ label: scalarText(key), value });
-          }
-        }
-      }
-      if (record.children) for (let i = record.children.length - 1; i >= 0; i--) stack.push({ ...record.children[i], parent: record });
-    }
-    return records;
-  };
-  const readYAML = (source) => {
-    if (typeof source !== "string") throw new TypeError("YAML input must be a string.");
-    if (source.length > 1000000) throw new RangeError("YAML exceeds 1 million characters.");
-    const documents = YAMLparser.loadAll(source, { schema: yamlSchema, maxDepth: 100, maxAliases: 1000, maxTotalMergeKeys: 10000 });
-    if (documents.length > 100) throw new RangeError("YAML exceeds 100 documents.");
-    return { documents, records: yamlRecords(documents) };
-  };
-  const copyYAML = (value) => (typeof value === "string" ? value : containerType(value) ? YAMLparser.dump(value, { schema: yamlSchema }) : scalarText(value));
-
-  /** Render YAML 1.2 core values, real Map keys, and bounded graph references. */
   /* --- PUBLIC API --- */
+  /** Render YAML 1.2 core values, real Map keys, and bounded graph references. */
   function byYAMLviewer(element, source, options = {}) {
     if (source === undefined) source = element?.textContent ?? "";
     options = { collapsed: false, search: false, copyValues: false, ...options };
@@ -4104,21 +4113,24 @@ exports.visit = visit;
     const status = node("p", "byVIEWstatus", "Parsing…");
     status.setAttribute("role", "status");
     const tree = node("div", "byYAMLtree");
-    if (options.expandCollapse === true && options.collapsible !== false) button(actions, "Expand all", "Expand all YAML nodes", () =>
-      tree.querySelectorAll("details").forEach((details) => {
-        details.open = true;
-      })
-    );
-    if (options.expandCollapse === true && options.collapsible !== false) button(actions, "Collapse all", "Collapse all YAML nodes", () =>
-      tree.querySelectorAll("details").forEach((details) => {
-        details.open = false;
-      })
-    );
+    if (options.expandCollapse === true && options.collapsible !== false)
+      button(actions, "Expand all", "Expand all YAML nodes", () =>
+        tree.querySelectorAll("details").forEach((details) => {
+          details.open = true;
+        })
+      );
+    if (options.expandCollapse === true && options.collapsible !== false)
+      button(actions, "Collapse all", "Collapse all YAML nodes", () =>
+        tree.querySelectorAll("details").forEach((details) => {
+          details.open = false;
+        })
+      );
     const panel = node("div", "byVIEWpanel");
     panel.append(status, tree);
     state.content.append(actions, panel);
     let records = [],
       generation = 0;
+    /* --- RENDERING --- */
     const render = async () => {
       const version = ++generation,
         query = search.value.toLowerCase(),
