@@ -85,7 +85,8 @@ The private `YAMLparser` block comes verbatim from `js-yaml@5.4.3/dist/js-yaml.c
 
 | Option             | Default     | Behavior                                                                                                                                                   |
 | ------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `animations`       | `true`      | Brief control/disclosure motion. `true` enables it and `false` disables it, overriding the system motion preference.                                       |
+| `animations`       | `true`      | Brief control/disclosure motion and background fades; overrides the system motion preference.                                                              |
+| `appearAnimation`  | `false`     | Fade and gently move the viewer in when `animations` is enabled. Initial rendering remains immediate by default.                                           |
 | `toolbar`          | `true`      | Show the viewer header; secondary tools are configured separately.                                                                                         |
 | `credits`          | `true`      | Show attribution in the header.                                                                                                                            |
 | `displayContainer` | `true`      | Show the content panel frame and inner horizontal padding. `false` also hides status information.                                                          |
@@ -121,6 +122,8 @@ Requires a modern browser with async functions, WeakMap, ES2022 array methods, a
 
 `--by-view-content-font` and `--by-view-line-height` set source/tree typography.
 
+The playground disables header-only settings while Viewer header is off, preserving their values. Appearing animation is disabled while Animations is off.
+
 Use `toolbar: false` to hide the header, or disable `credits`, `themeToggle`, `fontSizeControls`, and `copyButton` individually. Content actions such as search and format-specific buttons use their own options.
 
 Controls use monospace by default; override `--by-view-controls-font` to change it.
@@ -139,7 +142,7 @@ byYAMLviewer(target, source, {
 
 `theme` sets the mode class; `palette` sets `data-theme`. `fontSize` numbers use rem (`1` = the root text size); CSS sizes such as `"1.25em"`, `"1.25rem"`, and `"20px"` are also accepted. All sizes stay between `0.5rem` and `3rem`. Explicit options override markup; omitted or `null` values retain the container's settings. A named palette preserves its existing mode, including the `data-theme="light"` / `"dark"` aliases. Invalid appearance values throw `RangeError` before replacing the current document. Text-size Reset returns to the configured size, including after re-rendering.
 
-Initial content appears immediately. Animations affect controls and deliberate show/hide actions; rows, tokens, and typing are not animated. Disclosure size/exit transitions progressively enhance browsers that support them.
+Initial content appears immediately unless `appearAnimation: true` is requested with animations enabled. Theme backgrounds fade briefly on shared surfaces; font size, rows, and syntax tokens change immediately. High Contrast and forced-color backgrounds switch immediately. Animations also affect controls and deliberate show/hide actions. Disclosure size/exit transitions progressively enhance browsers that support them.
 
 The outer document and inner surfaces have independent CSS backgrounds. Both follow the selected theme unless overridden. Set `--by-view-document-bg: #0000` to reveal the host page while keeping content panels and individual controls readable. `--by-view-container-bg` sets the shared background of those panels and controls; it also accepts alpha colors or `transparent`. The toolbar and credits have no background. These overrides survive theme changes.
 
@@ -161,56 +164,56 @@ For local use, save `yaml.themes.css` beside `yaml.css`. The playground loads bo
 
 The picker groups palettes into Essentials, Editor classics, App inspired, Colorful, and Reading & nature. Palette definitions remain at the end of each stylesheet.
 
-| Palette | `data-theme` | What it looks like |
-| --- | --- | --- |
-| Monokai (default) | `monokai` | Warm light and dark colors; the default. |
-| GitHub | `github` | Neutral GitHub surfaces and syntax. |
-| Solarized | `solarized` | Warm paper and deep blue-green surfaces. |
-| High Contrast | `high-contrast` | Strong text, borders, and focus indicators. |
-| Dracula | `dracula` | Purple with vivid pink, green, and cyan. |
-| Darcula | `darcula` | Charcoal surfaces and warm IDE accents. |
-| Nord | `nord` | Arctic blues and snowy neutral surfaces. |
-| Catppuccin | `catppuccin` | Latte and Mocha with soft mauve accents. |
-| Catppuccin Frappé | `catppuccin-frappe` | Cooler Catppuccin with a blue accent. |
-| Catppuccin Macchiato | `catppuccin-macchiato` | Catppuccin with a warm pink accent. |
-| Rosé Pine | `rose-pine` | Dawn and Pine with dusty rose accents. |
-| Rosé Pine Moon | `rose-pine-moon` | A duskier violet take on Rosé Pine. |
-| Gruvbox | `gruvbox` | Warm retro browns, olive, and orange. |
-| Gruvbox Material | `gruvbox-material` | Softer earthy surfaces and muted greens. |
-| Tokyo Night | `tokyo-night` | Tokyo Day and Night with electric blues. |
-| Tokyo Storm | `tokyo-storm` | A brighter blue-gray Tokyo evening. |
-| Tokyo Moon | `tokyo-moon` | Indigo nights and luminous lavender. |
-| One | `one` | Clean One Light and One Dark colors. |
-| Material | `material` | Blue-gray material surfaces and cyan. |
-| Material Ocean | `material-ocean` | Deep navy with soft fluorescent accents. |
-| Night Owl | `night-owl` | Little Light and deep-blue night colors. |
-| Synthwave | `synthwave` | Neon magenta and cyan with no glow effects. |
-| Ayu | `ayu` | Warm amber over light paper or dark navy. |
-| Everforest | `everforest` | Soft forest greens and cream. |
-| Kanagawa | `kanagawa` | Ink, old paper, and Japanese wave colors. |
-| Selenized | `selenized` | Balanced teal surfaces and restrained color. |
-| VS Code | `vscode` | Familiar neutral editor surfaces and blue. |
-| Monokai Dimmed | `monokai-dimmed` | Quieter charcoal and desaturated Monokai. |
-| Discord | `discord` | Blurple accents and familiar chat surfaces. |
-| Slack | `slack` | Aubergine, warm pink, and friendly teal. |
-| BONYUR | `bonyur` | Signature teal and pink over warm neutral ink. |
-| Sakura | `sakura` | Cherry-blossom pink from surface to syntax. |
-| Bubblegum | `bubblegum` | Saturated hot-pink surfaces and cyan accents. |
-| Candy | `candy` | Pink and mint with playful lavender syntax. |
-| Rose Gold | `rose-gold` | Dusty pink and warm copper. |
-| Lavender | `lavender` | Lilac surfaces with deep violet accents. |
-| Cyberpunk | `cyberpunk` | Acid yellow, electric cyan, and magenta. |
-| Sunset | `sunset` | Burnt orange, coral, and evening purple. |
-| Volcano | `volcano` | Lava reds over warm ash. |
-| Amber | `amber` | Golden amber inspired by old displays. |
-| Terminal | `terminal` | Phosphor greens on near-black. |
-| Paper | `paper` | Warm cream, brown ink, and quiet margins. |
-| Ink | `ink` | Grayscale surfaces and restrained syntax. |
-| Ocean | `ocean` | Deep ocean blue and clear turquoise. |
-| Forest | `forest` | Rich green surfaces and mossy accents. |
-| Mint | `mint` | Fresh mint surfaces and cool teal. |
-| Ice | `ice` | Glacial blue, crisp whites, and silver. |
-| Sepia | `sepia` | Aged parchment and warm brown ink. |
+| Palette              | `data-theme`           | What it looks like                             |
+| -------------------- | ---------------------- | ---------------------------------------------- |
+| Monokai (default)    | `monokai`              | Warm light and dark colors; the default.       |
+| GitHub               | `github`               | Neutral GitHub surfaces and syntax.            |
+| Solarized            | `solarized`            | Warm paper and deep blue-green surfaces.       |
+| High Contrast        | `high-contrast`        | Strong text, borders, and focus indicators.    |
+| Dracula              | `dracula`              | Purple with vivid pink, green, and cyan.       |
+| Darcula              | `darcula`              | Charcoal surfaces and warm IDE accents.        |
+| Nord                 | `nord`                 | Arctic blues and snowy neutral surfaces.       |
+| Catppuccin           | `catppuccin`           | Latte and Mocha with soft mauve accents.       |
+| Catppuccin Frappé    | `catppuccin-frappe`    | Cooler Catppuccin with a blue accent.          |
+| Catppuccin Macchiato | `catppuccin-macchiato` | Catppuccin with a warm pink accent.            |
+| Rosé Pine            | `rose-pine`            | Dawn and Pine with dusty rose accents.         |
+| Rosé Pine Moon       | `rose-pine-moon`       | A duskier violet take on Rosé Pine.            |
+| Gruvbox              | `gruvbox`              | Warm retro browns, olive, and orange.          |
+| Gruvbox Material     | `gruvbox-material`     | Softer earthy surfaces and muted greens.       |
+| Tokyo Night          | `tokyo-night`          | Tokyo Day and Night with electric blues.       |
+| Tokyo Storm          | `tokyo-storm`          | A brighter blue-gray Tokyo evening.            |
+| Tokyo Moon           | `tokyo-moon`           | Indigo nights and luminous lavender.           |
+| One                  | `one`                  | Clean One Light and One Dark colors.           |
+| Material             | `material`             | Blue-gray material surfaces and cyan.          |
+| Material Ocean       | `material-ocean`       | Deep navy with soft fluorescent accents.       |
+| Night Owl            | `night-owl`            | Little Light and deep-blue night colors.       |
+| Synthwave            | `synthwave`            | Neon magenta and cyan with no glow effects.    |
+| Ayu                  | `ayu`                  | Warm amber over light paper or dark navy.      |
+| Everforest           | `everforest`           | Soft forest greens and cream.                  |
+| Kanagawa             | `kanagawa`             | Ink, old paper, and Japanese wave colors.      |
+| Selenized            | `selenized`            | Balanced teal surfaces and restrained color.   |
+| VS Code              | `vscode`               | Familiar neutral editor surfaces and blue.     |
+| Monokai Dimmed       | `monokai-dimmed`       | Quieter charcoal and desaturated Monokai.      |
+| Discord              | `discord`              | Blurple accents and familiar chat surfaces.    |
+| Slack                | `slack`                | Aubergine, warm pink, and friendly teal.       |
+| BONYUR               | `bonyur`               | Signature teal and pink over warm neutral ink. |
+| Sakura               | `sakura`               | Cherry-blossom pink from surface to syntax.    |
+| Bubblegum            | `bubblegum`            | Saturated hot-pink surfaces and cyan accents.  |
+| Candy                | `candy`                | Pink and mint with playful lavender syntax.    |
+| Rose Gold            | `rose-gold`            | Dusty pink and warm copper.                    |
+| Lavender             | `lavender`             | Lilac surfaces with deep violet accents.       |
+| Cyberpunk            | `cyberpunk`            | Acid yellow, electric cyan, and magenta.       |
+| Sunset               | `sunset`               | Burnt orange, coral, and evening purple.       |
+| Volcano              | `volcano`              | Lava reds over warm ash.                       |
+| Amber                | `amber`                | Golden amber inspired by old displays.         |
+| Terminal             | `terminal`             | Phosphor greens on near-black.                 |
+| Paper                | `paper`                | Warm cream, brown ink, and quiet margins.      |
+| Ink                  | `ink`                  | Grayscale surfaces and restrained syntax.      |
+| Ocean                | `ocean`                | Deep ocean blue and clear turquoise.           |
+| Forest               | `forest`               | Rich green surfaces and mossy accents.         |
+| Mint                 | `mint`                 | Fresh mint surfaces and cool teal.             |
+| Ice                  | `ice`                  | Glacial blue, crisp whites, and silver.        |
+| Sepia                | `sepia`                | Aged parchment and warm brown ink.             |
 
 Editor and app skins are inspired adaptations, including light counterparts where needed; colors are adjusted for readable text and controls rather than exact replicas. All palettes use the same layout and need no assets beyond the core stylesheet and optional theme pack.
 
