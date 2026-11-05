@@ -27,8 +27,8 @@ Uses YAML 1.2 CORE plus merge keys and real JavaScript Maps (`CORE_SCHEMA.withTa
 **Recommended: CDN.** No downloads or package manager.
 
 ```html
-<link href="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.js" defer></script>
+<link href="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.min.js" defer></script>
 <div id="viewer" data-theme="light"></div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -157,7 +157,7 @@ The playground uses SPA.js's Pickr assets for color and opacity, with text input
 **48 palettes, each with Light and Dark modes.** Monokai, GitHub, Solarized, and High Contrast are included in `yaml.css`. Load the optional `yaml.themes.css` after it for the other 44 skins:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.themes.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/byuwur/easy-yaml-viewer@latest/yaml.themes.min.css" />
 ```
 
 For local use, save `yaml.themes.css` beside `yaml.css`. The playground loads both stylesheets; default HTML starters use the core stylesheet. Known extra presets without the pack fall back to the current mode and emit a one-time `console.warn` naming the required file. Custom CSS names do not need the pack.

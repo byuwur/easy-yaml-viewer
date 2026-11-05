@@ -53,13 +53,13 @@ test("suite playground, exports, and stylesheet controls", async () => {
     await page.route("**/*", async (route) => {
       if (route.request().url() === "https://cdn.jsdelivr.net/gh/byuwur/spa.js@v20.7/css/bootstrap.min.css") return route.fulfill({ body: await getBootstrapCSS(), contentType: "text/css" });
       const url = new URL(route.request().url());
-      if (["https://cdn.jsdelivr.net/gh/byuwur/easy-code-viewer@v1.5/code.css", "https://cdn.jsdelivr.net/gh/byuwur/easy-code-viewer@v1.5/code.js"].includes(url.href)) {
+      if (["https://cdn.jsdelivr.net/gh/byuwur/easy-code-viewer@v1.5/code.min.css", "https://cdn.jsdelivr.net/gh/byuwur/easy-code-viewer@v1.5/code.min.js"].includes(url.href)) {
         const response = await fetch(url, { signal: AbortSignal.timeout(15000) });
         assert.ok(response.ok, "Unable to load pinned CODE asset");
         return route.fulfill({ body: await response.text(), contentType: url.pathname.endsWith(".js") ? "text/javascript" : "text/css" });
       }
       if (url.origin !== "https://viewer.test") return route.abort();
-      const file = path.basename(url.pathname);
+      const file = path.basename(url.pathname).replace(/\.min(?=\.(?:css|js)$)/, "");
       if (/^yaml\.(light|dark)\.css$/.test(file)) return route.fulfill({ body: legacyThemeCSS(file.includes(".dark.css") ? "dark" : "light"), contentType: "text/css" });
       return route.fulfill({ path: path.join(__dirname, "..", file), contentType: file.endsWith(".html") ? "text/html" : file.endsWith(".js") ? "text/javascript" : "text/css" });
     });
@@ -103,9 +103,9 @@ test("suite playground, exports, and stylesheet controls", async () => {
     );
     await page.locator("#site-theme").click();
     const readme = require("node:fs").readFileSync(path.join(__dirname, "../README.md"), "utf8");
-    for (const extension of ["css", "js"]) assert.ok(readme.includes(`${cdnBase}yaml.${extension}`), "README assets must match the CDN starter");
+    for (const extension of ["css", "js"]) assert.ok(readme.includes(`${cdnBase}yaml.min.${extension}`), "README assets must match the CDN starter");
     assert.equal(await page.locator("#install-note").textContent(), "CDN follows the latest release; updates may take time to reach caches.");
-    assert.ok((await readStarter(page)).includes(`href="${cdnBase}yaml.css"`));
+    assert.ok((await readStarter(page)).includes(`href="${cdnBase}yaml.min.css"`));
     assert.equal(await page.locator('[data-install="cdn"]').getAttribute("aria-pressed"), "true");
     await page.locator('[data-install="local"]').click();
     const starter = await readStarter(page);
@@ -154,7 +154,7 @@ test("suite playground, exports, and stylesheet controls", async () => {
     assert.equal(await require("node:fs/promises").readFile(await download.path(), "utf8"), starter);
     const exported = await browser.newPage();
     await exported.route("https://viewer.test/**", (route) => {
-      const file = path.basename(new URL(route.request().url()).pathname);
+      const file = path.basename(new URL(route.request().url()).pathname).replace(/\.min(?=\.(?:css|js)$)/, "");
       if (/^yaml\.(light|dark)\.css$/.test(file)) return route.fulfill({ body: legacyThemeCSS(file.includes(".dark.css") ? "dark" : "light"), contentType: "text/css" });
       if (file === "starter.html") return route.fulfill({ body: starter, contentType: "text/html" });
       return route.fulfill({ path: path.join(__dirname, "..", file), contentType: file.endsWith(".js") ? "text/javascript" : "text/css" });
@@ -176,9 +176,9 @@ test("suite playground, exports, and stylesheet controls", async () => {
     assert.equal(await exported.evaluate(() => copiedSource), expectedCopy);
     await page.locator('[data-install="cdn"]').click();
     const cdnStarter = await readStarter(page);
-    assert.equal(cdnStarter.replaceAll(cdnBase, ""), starter, "Only asset paths change between modes");
-    assert.ok(cdnStarter.includes('href="' + cdnBase + 'yaml.css"'));
-    assert.ok(cdnStarter.includes('src="' + cdnBase + 'yaml.js"'));
+    assert.equal(cdnStarter.replaceAll(cdnBase, "").replace(/\.min(?=\.(?:css|js)")/g, ""), starter, "Only asset paths change between modes");
+    assert.ok(cdnStarter.includes('href="' + cdnBase + 'yaml.min.css"'));
+    assert.ok(cdnStarter.includes('src="' + cdnBase + 'yaml.min.js"'));
     assert.equal(await page.locator('[data-install="cdn"]').getAttribute("aria-pressed"), "true");
     assert.equal(await page.locator('[data-install="local"]').getAttribute("aria-pressed"), "false");
     await page.locator("#copy-html").click();
@@ -192,16 +192,16 @@ test("suite playground, exports, and stylesheet controls", async () => {
     await cdnPage.route("**/*", (route) => {
       const url = route.request().url();
       if (url === "https://viewer.test/cdn-starter.html") return route.fulfill({ body: cdnStarter, contentType: "text/html" });
-      if ([cdnBase + "yaml.css", cdnBase + "yaml.js"].includes(url)) {
+      if ([cdnBase + "yaml.min.css", cdnBase + "yaml.min.js"].includes(url)) {
         cdnRequests.push(url);
-        return route.fulfill({ path: path.join(__dirname, "..", path.basename(new URL(url).pathname)), contentType: url.endsWith(".js") ? "text/javascript" : "text/css" });
+        return route.fulfill({ path: path.join(__dirname, "..", path.basename(new URL(url).pathname).replace(/\.min(?=\.(?:css|js)$)/, "")), contentType: url.endsWith(".js") ? "text/javascript" : "text/css" });
       }
       return route.abort();
     });
     await cdnPage.goto("https://viewer.test/cdn-starter.html");
     await cdnPage.waitForFunction(() => document.querySelector(".byVIEWtoolbar") && document.getElementById("viewer").getAttribute("aria-busy") !== "true");
     assert.equal(await cdnPage.locator("[role=alert]:visible").count(), 0);
-    assert.deepEqual(cdnRequests.sort(), [cdnBase + "yaml.css", cdnBase + "yaml.js"]);
+    assert.deepEqual(cdnRequests.sort(), [cdnBase + "yaml.min.css", cdnBase + "yaml.min.js"]);
     await cdnPage.close();
     await page.locator('[data-install="local"]').click();
     assert.equal(await readStarter(page), starter);
@@ -264,7 +264,7 @@ test("family customization, navigation and monospace controls", async () => {
       if (route.request().url() === "https://cdn.jsdelivr.net/gh/byuwur/spa.js@v20.7/css/bootstrap.min.css") return route.fulfill({ body: await getBootstrapCSS(), contentType: "text/css" });
       const url = new URL(route.request().url());
       if (url.origin !== "https://viewer.test") return route.abort();
-      const file = path.basename(url.pathname);
+      const file = path.basename(url.pathname).replace(/\.min(?=\.(?:css|js)$)/, "");
       if (/^yaml\.(light|dark)\.css$/.test(file)) return route.fulfill({ body: legacyThemeCSS(file.includes(".dark.css") ? "dark" : "light"), contentType: "text/css" });
       return route.fulfill({ path: path.join(__dirname, "..", file), contentType: file.endsWith(".html") ? "text/html" : file.endsWith(".js") ? "text/javascript" : "text/css" });
     });
@@ -557,7 +557,7 @@ test("playground palettes and editable two-mode custom themes stay synchronized"
       const url = new URL(route.request().url());
       if (url.href === "https://cdn.jsdelivr.net/gh/byuwur/spa.js@v20.7/css/bootstrap.min.css") return route.fulfill({ body: await getBootstrapCSS(), contentType: "text/css" });
       if (url.origin !== "https://viewer.test") return route.abort();
-      const file = path.basename(url.pathname);
+      const file = path.basename(url.pathname).replace(/\.min(?=\.(?:css|js)$)/, "");
       return route.fulfill({ path: path.join(__dirname, "..", file), contentType: file.endsWith(".html") ? "text/html" : file.endsWith(".js") ? "text/javascript" : "text/css" });
     });
     await page.goto("https://viewer.test/index.html");
