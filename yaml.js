@@ -4133,7 +4133,7 @@ THE SOFTWARE.
     element.classList.toggle("byVIEWbottom", options.controlsPosition === "bottom");
     const content = node("div", "byVIEWcontent");
     const toolbar = node("div", "byVIEWtoolbar");
-    toolbar.dataset.size = ["small", "regular", "large"].includes(options.controlsSize) ? options.controlsSize : "regular";
+    toolbar.dataset.size = ["xs", "small", "regular", "large", "xl"].includes(options.controlsSize) ? options.controlsSize : "regular";
     const info = node("small", "byVIEWinfo");
     for (const [text, href] of [
       ["easy-yaml-viewer", "https://github.com/byuwur/easy-yaml-viewer"],

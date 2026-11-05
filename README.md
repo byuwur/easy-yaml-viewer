@@ -83,22 +83,22 @@ The private `YAMLparser` block comes verbatim from `js-yaml@5.4.3/dist/js-yaml.c
 
 ## Shared controls and lifecycle
 
-| Option             | Default     | Behavior                                                                                                             |
-| ------------------ | ----------- | -------------------------------------------------------------------------------------------------------------------- |
-| `animations`       | `true`      | Brief control/disclosure motion. `true` enables it and `false` disables it, overriding the system motion preference. |
-| `toolbar`          | `true`      | Show the viewer header; secondary tools are configured separately.                                                   |
-| `credits`          | `true`      | Show attribution in the header.                                                                                      |
-| `statusBar`        | `true`      | Show counts and metadata. Loading, errors, and empty results remain visible.                                         |
-| `expandCollapse`   | `false`     | Show Expand all / Collapse all.                                                                                      |
-| `theme`            | Container   | Initial `"light"` or `"dark"` mode class.                                                                            |
-| `palette`          | Container   | Initial `data-theme` palette, including custom CSS names.                                                            |
-| `fontSize`         | Container   | Number in rem or a CSS size such as `"1.25em"` or `"20px"`; bounded to `0.5rem`–`3rem`.                              |
-| `themeToggle`      | `true`      | Show the theme toggle.                                                                                               |
-| `fontSizeControls` | `true`      | Show text-size controls.                                                                                             |
-| `copyButton`       | `true`      | Show full source copy button.                                                                                        |
-| `controlsSize`     | `"regular"` | `"small"`, `"regular"`, or `"large"`; invalid values use `"regular"`.                                                |
-| `controlsCompact`  | `true`      | Keep credits beside controls; `false` stacks them. Wraps as needed.                                                  |
-| `controlsPosition` | `"top"`     | Sticky `"top"` or `"bottom"` toolbar; invalid values use `"top"`.                                                    |
+| Option             | Default     | Behavior                                                                                                                                                   |
+| ------------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `animations`       | `true`      | Brief control/disclosure motion. `true` enables it and `false` disables it, overriding the system motion preference.                                       |
+| `toolbar`          | `true`      | Show the viewer header; secondary tools are configured separately.                                                                                         |
+| `credits`          | `true`      | Show attribution in the header.                                                                                                                            |
+| `statusBar`        | `true`      | Show counts and metadata. Loading, errors, and empty results remain visible.                                                                               |
+| `expandCollapse`   | `false`     | Show Expand all / Collapse all.                                                                                                                            |
+| `theme`            | Container   | Initial `"light"` or `"dark"` mode class.                                                                                                                  |
+| `palette`          | Container   | Initial `data-theme` palette, including custom CSS names.                                                                                                  |
+| `fontSize`         | Container   | Number in rem or a CSS size such as `"1.25em"` or `"20px"`; bounded to `0.5rem`–`3rem`.                                                                    |
+| `themeToggle`      | `true`      | Show the theme toggle.                                                                                                                                     |
+| `fontSizeControls` | `true`      | Show text-size controls.                                                                                                                                   |
+| `copyButton`       | `true`      | Show full source copy button.                                                                                                                              |
+| `controlsSize`     | `"regular"` | `"xs"` (0.5rem), `"small"` (0.7rem), `"regular"` (0.875rem), `"large"` (1rem), or `"xl"` (1.25rem); invalid values use `"regular"`.                        |
+| `controlsCompact`  | `true`      | Keep credits beside controls; `false` stacks them. Wraps as needed.                                                                                        |
+| `controlsPosition` | `"top"`     | Sticky `"top"` or `"bottom"` toolbar; invalid values use `"top"`.                                                                                          |
 
 The controller exposes `ready` and `destroy()`. `ready` resolves `true` after initial rendering, or `false` on a displayed data error or cancellation. Invalid targets/options can throw synchronously.
 
