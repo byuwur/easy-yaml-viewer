@@ -7,10 +7,10 @@
  * MIT License (see LICENSE).
  */
 (function (global) {
-  /* --- INITIALIZATION --- */
+  // --- INITIALIZATION ---
   if (global.byYAMLviewer?.initialized) return;
 
-  /* --- METADATA --- */
+  // --- METADATA ---
   byYAMLviewer.VERSION = "1.4"; // 2026-11-05
   byYAMLviewer.PARSER_VERSION = "5.4.3"; // 2026-11-04
 
@@ -38,7 +38,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
   */
-  /* --- EMBEDDED PARSER --- */
+  // --- EMBEDDED PARSER ---
   const YAMLparser = (() => {
     const exports = {};
     /*! js-yaml 5.4.3 https://github.com/nodeca/js-yaml @license MIT */
@@ -3815,12 +3815,12 @@ THE SOFTWARE.
     return exports;
   })();
 
-  /* --- CONSTANTS --- */
+  // --- CONSTANTS ---
   const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
 
-  /* --- STATE --- */
+  // --- STATE ---
   const instances = new WeakMap();
-  /* --- HELPERS --- */
+  // --- HELPERS ---
   const node = (tag, className = "", text) => {
     const element = document.createElement(tag);
     element.className = className;
@@ -3862,10 +3862,10 @@ THE SOFTWARE.
     control.addEventListener("focusout", reset);
     return control;
   };
-  /** Yield at a chunk boundary so input events and replacement renders can run. */
+  // Yield at a chunk boundary so input events and replacement renders can run.
   const pause = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-  /* --- APPEARANCE --- */
+  // --- APPEARANCE ---
   const extraPalettes = new Set([
     "dracula",
     "darcula",
@@ -3921,7 +3921,7 @@ THE SOFTWARE.
     console.warn(`easy-yaml-viewer: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://byuwur.github.io/easy-yaml-viewer/`);
   };
 
-  /** Explicit appearance options override markup; omitted values preserve the container's state. */
+  // Explicit appearance options override markup; omitted values preserve the container's state.
   const applyAppearance = (element, options) => {
     const { theme, palette, fontSize } = options;
     if (theme != null && !["light", "dark"].includes(theme)) throw new RangeError("Theme must be light or dark.");
@@ -3942,7 +3942,7 @@ THE SOFTWARE.
     }
   };
 
-  /* --- CONTROLS --- */
+  // --- CONTROLS ---
   // Mirrored across the family so each viewer can run without a shared runtime.
   /**
    * Adds container light/dark controls, retaining legacy stylesheet links as a fallback.
@@ -4102,11 +4102,11 @@ THE SOFTWARE.
     });
   };
 
-  /* --- PARSING --- */
+  // --- PARSING ---
   // Keep mappings as Maps for complex keys; allow core/merge tags without arbitrary constructors.
   const scalarText = (value) => (typeof value === "string" ? JSON.stringify(value) : value === null ? "null" : Number.isNaN(value) ? ".nan" : value === Infinity ? ".inf" : value === -Infinity ? "-.inf" : String(value));
   const containerType = (value) => (value instanceof Map ? "mapping" : Array.isArray(value) ? "sequence" : null);
-  /** Index each container identity once so aliases and cycles become bounded references. */
+  // Index each container identity once so aliases and cycles become bounded references.
   const yamlRecords = (documents) => {
     const records = [],
       seen = new WeakMap(),
@@ -4151,7 +4151,7 @@ THE SOFTWARE.
     }
     return records;
   };
-  /** Parse the permitted schema and enforce both source and graph limits shared by parse() and rendering. */
+  // Parse the permitted schema and enforce both source and graph limits shared by parse() and rendering.
   const readYAML = (source) => {
     if (typeof source !== "string") throw new TypeError("YAML input must be a string.");
     if (source.length > 1000000) throw new RangeError("YAML exceeds 1 million characters.");
@@ -4160,12 +4160,12 @@ THE SOFTWARE.
     // The public parser shares graph limits with rendering, even when callers only request values.
     return { documents, records: yamlRecords(documents) };
   };
-  /** Copy strings exactly; serialize other values semantically rather than claiming to preserve YAML spelling. */
+  // Copy strings exactly; serialize other values semantically rather than claiming to preserve YAML spelling.
   const copyYAML = (value) => (typeof value === "string" ? value : containerType(value) ? YAMLparser.dump(value, { schema: yamlSchema }) : scalarText(value));
 
-  /* --- LIFECYCLE --- */
+  // --- LIFECYCLE ---
   // One instance owns the container; replacement disposes its pending work first.
-  /** Replace the previous owner and return its cancellable state. Only the current owner may clear the host. */
+  // Replace the previous owner and return its cancellable state. Only the current owner may clear the host.
   const mount = (element, options, getText) => {
     if (!(element instanceof HTMLElement)) throw new TypeError("byYAMLviewer: element must be an HTMLElement.");
     applyAppearance(element, options);
@@ -4238,8 +4238,8 @@ THE SOFTWARE.
     return state;
   };
 
-  /* --- PUBLIC API --- */
-  /** Render YAML 1.2 core values, real Map keys, and bounded graph references. */
+  // --- PUBLIC API ---
+  // Render YAML 1.2 core values, real Map keys, and bounded graph references.
   function byYAMLviewer(element, source, options = {}) {
     if (source === undefined) source = element?.textContent ?? "";
     options = { collapsed: false, search: false, copyValues: false, ...options };
@@ -4270,7 +4270,7 @@ THE SOFTWARE.
     state.content.append(actions, panel);
     let records = [],
       generation = 0;
-    /* --- RENDERING --- */
+    // --- RENDERING ---
     const render = async () => {
       const version = ++generation,
         query = search.value.toLowerCase(),
@@ -4345,7 +4345,7 @@ THE SOFTWARE.
   }
 
   byYAMLviewer.parse = (source) => readYAML(source).documents;
-  /* --- EXPORT --- */
+  // --- EXPORT ---
   global.byYAMLviewer = byYAMLviewer;
   byYAMLviewer.initialized = true;
 })(typeof window !== "undefined" ? window : this);
