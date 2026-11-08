@@ -3816,6 +3816,7 @@ THE SOFTWARE.
   })();
 
   // --- CONSTANTS ---
+  // Preserve complex mapping keys as Maps while limiting tags to the core schema and merge support.
   const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
 
   // --- STATE ---
@@ -3929,6 +3930,7 @@ THE SOFTWARE.
     warnMissingThemes(element, palette ?? element.dataset.theme);
     const size = typeof fontSize === "number" ? `${Math.max(0.5, Math.min(3, fontSize))}rem` : typeof fontSize === "string" ? `clamp(0.5rem, ${fontSize}, 3rem)` : "";
     if (fontSize != null && (typeof fontSize === "number" ? !Number.isFinite(fontSize) : typeof fontSize !== "string" || !CSS.supports("font-size", size))) throw new RangeError("Font size must be a finite multiplier or a CSS size.");
+    // Keep palette identity in data-theme while light/dark classes select its mode.
     if (theme != null || palette != null) {
       const mode = theme ?? (["light", "dark"].includes(element.dataset.theme) ? element.dataset.theme : element.classList.contains("dark") ? "dark" : "light");
       element.classList.toggle("light", mode === "light");
@@ -4012,6 +4014,7 @@ THE SOFTWARE.
    * @return {HTMLElement} The text size button group.
    */
   const appendFontSizeControls = (element, controls) => {
+    // Remember the caller's initial size so Reset also works after this toolbar is recreated.
     element.dataset.byViewDefaultFontSize ??= element.style.fontSize;
     const sizes = document.createElement("div");
     sizes.className = "byVIEWfontSizes";
@@ -4111,6 +4114,7 @@ THE SOFTWARE.
     const records = [],
       seen = new WeakMap(),
       stack = [];
+    // Reverse stack insertion preserves document order during iterative depth-first traversal.
     for (let i = documents.length - 1; i >= 0; i--) stack.push({ label: `Document ${i + 1}`, value: documents[i], parent: null });
     while (stack.length) {
       if (records.length >= 50000) throw new RangeError("YAML graph exceeds 50,000 displayed nodes.");
@@ -4134,6 +4138,7 @@ THE SOFTWARE.
           let index = 0;
           for (const [key, value] of record.value) {
             index++;
+            // Give complex keys their own Key/Value children instead of coercing them to lossy string labels.
             if (containerType(key))
               record.children.push({
                 label: `Entry ${index} (complex key)`,
@@ -4168,6 +4173,7 @@ THE SOFTWARE.
   // Replace the previous owner and return its cancellable state. Only the current owner may clear the host.
   const mount = (element, options, getText) => {
     if (!(element instanceof HTMLElement)) throw new TypeError("byYAMLviewer: element must be an HTMLElement.");
+    // Validate appearance before disposing the current instance, so invalid options leave it usable.
     applyAppearance(element, options);
     const painted = element.classList.contains("byVIEWready");
     instances.get(element)?.destroy();
@@ -4176,6 +4182,7 @@ THE SOFTWARE.
       if (!state.active) return;
       state.active = false;
       cancelAnimationFrame(state.motionFrame);
+      // An old controller must not clear a replacement mounted on the same element.
       if (instances.get(element) === state) {
         instances.delete(element);
         element.replaceChildren();
@@ -4272,6 +4279,7 @@ THE SOFTWARE.
       generation = 0;
     // --- RENDERING ---
     const render = async () => {
+      // Each search supersedes earlier passes paused at cooperative checkpoints.
       const version = ++generation,
         query = search.value.toLowerCase(),
         included = new Set();
@@ -4280,6 +4288,7 @@ THE SOFTWARE.
       for (let i = 0; i < records.length; i++) {
         if (!query || records[i].search.includes(query)) {
           matches++;
+          // Include ancestor paths and open them during search so matching descendants remain reachable.
           for (let current = records[i]; current && !included.has(current); current = current.parent) included.add(current);
         }
         if (i % 1000 === 0) {
@@ -4322,6 +4331,7 @@ THE SOFTWARE.
         }
       }
       if (!state.active || generation !== version) return false;
+      // Commit only a complete tree; canceled passes never expose partial results.
       tree.replaceChildren(fragment);
       status.hidden = options.statusBar === false && records.length > 0 && (!query || matches > 0);
       status.textContent = records.length ? (query ? `${matches} matching nodes` : `${records.length} nodes (shared containers appear as references)`) : "No YAML documents.";
