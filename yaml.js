@@ -3919,7 +3919,8 @@ THE SOFTWARE.
     const document = element.ownerDocument;
     if (document.defaultView.getComputedStyle(document.documentElement).getPropertyValue("--by-yaml-themes-loaded").trim() === "1") return;
     warnedPalettes.add(palette);
-    console.warn(`easy-yaml-viewer: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://byuwur.github.io/easy-yaml-viewer/`);
+    // console.warn(`easy-yaml-viewer: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://byuwur.github.io/easy-yaml-viewer/`);
+    console.warn(`easy-yaml-viewer: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://yaml.byuwur.co/`);
   };
 
   // Explicit appearance options override markup; omitted values preserve the container's state.
