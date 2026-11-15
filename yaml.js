@@ -4273,7 +4273,7 @@ THE SOFTWARE.
     search.placeholder = "Search YAML";
     search.setAttribute("aria-label", "Search YAML");
     if (showSearch) actions.appendChild(search);
-    const status = node("p", "byVIEWstatus", "Parsing…");
+    const status = node("p", "byVIEWstatus", "Parsing...");
     status.setAttribute("role", "status");
     const tree = node("div", "byYAMLtree");
     if (expandCollapse && collapsible)

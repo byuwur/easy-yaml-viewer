@@ -426,7 +426,7 @@
               <div class="panel-heading border-bottom px-3 px-xxl-4 py-3 d-flex align-items-center justify-content-between gap-2">
                 <h3 id="preview-heading" class="h6 m-0 fw-semibold"><span class="small font-monospace text-body-secondary me-2">03</span> Live preview</h3>
 
-                <div id="render-status" class="small font-monospace text-body-secondary" role="status">Loading viewer…</div>
+                <div id="render-status" class="small font-monospace text-body-secondary" role="status">Loading viewer...</div>
               </div>
               <div class="panel-body overflow-hidden flex-grow-1"><iframe id="preview-frame" title="YAML viewer preview" allow="clipboard-write" class="d-block w-100 h-100 border-0"></iframe></div>
             </section>
@@ -434,19 +434,19 @@
           <dl class="metric-strip bg-body-tertiary m-0 border-top row g-0" aria-label="Measurements for the current render">
             <div class="metric p-3 col-6 col-md-3">
               <dt class="small fw-normal font-monospace text-body-secondary mb-2">Source size</dt>
-              <dd id="metric-size" class="m-0 font-monospace">—</dd>
+              <dd id="metric-size" class="m-0 font-monospace">-</dd>
             </div>
             <div class="metric p-3 col-6 col-md-3">
               <dt class="small fw-normal font-monospace text-body-secondary mb-2">Lines</dt>
-              <dd id="metric-lines" class="m-0 font-monospace">—</dd>
+              <dd id="metric-lines" class="m-0 font-monospace">-</dd>
             </div>
             <div class="metric p-3 col-6 col-md-3">
               <dt class="small fw-normal font-monospace text-body-secondary mb-2">Render DOM</dt>
-              <dd id="metric-time" class="m-0 font-monospace">—</dd>
+              <dd id="metric-time" class="m-0 font-monospace">-</dd>
             </div>
             <div class="metric p-3 col-6 col-md-3">
               <dt class="small fw-normal font-monospace text-body-secondary mb-2">DOM elements</dt>
-              <dd id="metric-nodes" class="m-0 font-monospace">—</dd>
+              <dd id="metric-nodes" class="m-0 font-monospace">-</dd>
             </div>
           </dl>
         </div>
@@ -987,8 +987,8 @@
           const version = ++renderVersion;
           error.hidden = true;
           for (const editor of [source, second].filter(Boolean)) editor.removeAttribute("aria-invalid");
-          status.textContent = "Rendering…";
-          for (const metric of document.querySelectorAll(".metric dd")) metric.textContent = "—";
+          status.textContent = "Rendering...";
+          for (const metric of document.querySelectorAll(".metric dd")) metric.textContent = "-";
           try {
             const win = frame.contentWindow;
             const target = win.document.getElementById("viewer");
