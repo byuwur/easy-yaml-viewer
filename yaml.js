@@ -4176,6 +4176,17 @@ THE SOFTWARE.
     if (!(element instanceof HTMLElement)) throw new TypeError("byYAMLviewer: element must be an HTMLElement.");
     // Validate appearance before disposing the current instance, so invalid options leave it usable.
     applyAppearance(element, options);
+    const {
+      animations = true,
+      appearAnimation = false,
+      displayContainer = true,
+      controlsCompact = true,
+      credits = true,
+      themeToggle = true,
+      fontSizeControls = true,
+      copyButton: showCopyButton = true,
+      toolbar: showToolbar = true
+    } = options;
     const painted = element.classList.contains("byVIEWready");
     instances.get(element)?.destroy();
     const state = { active: true };
@@ -4194,8 +4205,8 @@ THE SOFTWARE.
     instances.set(element, state);
     element.replaceChildren();
     element.classList.add("byYAMLdocument");
-    element.classList.toggle("byVIEWmotion", options.animations !== false);
-    const appear = options.animations !== false && options.appearAnimation === true;
+    element.classList.toggle("byVIEWmotion", animations);
+    const appear = animations && appearAnimation;
     element.classList.toggle("byVIEWappear", appear);
     if (painted && !appear) element.classList.add("byVIEWready");
     else {
@@ -4207,8 +4218,8 @@ THE SOFTWARE.
         });
       });
     }
-    element.classList.toggle("byVIEWplain", options.displayContainer === false);
-    element.classList.toggle("byVIEWcompact", options.controlsCompact !== false);
+    element.classList.toggle("byVIEWplain", !displayContainer);
+    element.classList.toggle("byVIEWcompact", controlsCompact);
     element.classList.toggle("byVIEWbottom", options.controlsPosition === "bottom");
     const content = node("div", "byVIEWcontent");
     const toolbar = node("div", "byVIEWtoolbar");
@@ -4225,15 +4236,15 @@ THE SOFTWARE.
       if (info.childNodes.length) info.append(` · v${byYAMLviewer.VERSION} · `);
       info.appendChild(link);
     }
-    if (options.credits !== false) toolbar.appendChild(info);
+    if (credits) toolbar.appendChild(info);
     const controls = node("div", "byVIEWcontrols");
     controls.setAttribute("role", "group");
     controls.setAttribute("aria-label", "Viewer controls");
-    if (options.themeToggle !== false) appendThemeToggle(element, controls, "yaml");
-    if (options.fontSizeControls !== false) appendFontSizeControls(element, controls);
-    if (options.copyButton !== false) appendCopyButton(controls, getText, "Copy source");
+    if (themeToggle) appendThemeToggle(element, controls, "yaml");
+    if (fontSizeControls) appendFontSizeControls(element, controls);
+    if (showCopyButton) appendCopyButton(controls, getText, "Copy source");
     if (controls.childNodes.length) toolbar.appendChild(controls);
-    if (options.toolbar === false || !toolbar.childNodes.length) {
+    if (!showToolbar || !toolbar.childNodes.length) {
       element.classList.remove("byVIEWbottom");
       element.appendChild(content);
     } else element.append(...(options.controlsPosition === "bottom" ? [content, toolbar] : [toolbar, content]));
@@ -4252,24 +4263,26 @@ THE SOFTWARE.
   // Render YAML 1.2 core values, real Map keys, and bounded graph references.
   function byYAMLviewer(element, source, options = {}) {
     if (source === undefined) source = element?.textContent ?? "";
-    options = { collapsed: false, search: false, copyValues: false, ...options };
+    options = { ...options };
+    // Omitted and undefined flags use the same defaults.
+    const { collapsed = false, search: showSearch = false, copyValues = false, collapsible = true, expandCollapse = false, statusBar = true } = options;
     const state = mount(element, options, () => source);
     const actions = node("div", "byVIEWactions");
     const search = node("input");
     search.type = "search";
     search.placeholder = "Search YAML";
     search.setAttribute("aria-label", "Search YAML");
-    if (options.search !== false) actions.appendChild(search);
+    if (showSearch) actions.appendChild(search);
     const status = node("p", "byVIEWstatus", "Parsing…");
     status.setAttribute("role", "status");
     const tree = node("div", "byYAMLtree");
-    if (options.expandCollapse === true && options.collapsible !== false)
+    if (expandCollapse && collapsible)
       button(actions, "Expand all", "Expand all YAML nodes", () =>
         tree.querySelectorAll("details").forEach((details) => {
           details.open = true;
         })
       );
-    if (options.expandCollapse === true && options.collapsible !== false)
+    if (expandCollapse && collapsible)
       button(actions, "Collapse all", "Collapse all YAML nodes", () =>
         tree.querySelectorAll("details").forEach((details) => {
           details.open = false;
@@ -4306,10 +4319,10 @@ THE SOFTWARE.
         if (!included.has(record)) continue;
         const parent = record.parent ? containers.get(record.parent) : fragment;
         const hasChildren = Boolean(record.children?.length) && !record.reference;
-        const foldable = hasChildren && options.collapsible !== false;
+        const foldable = hasChildren && collapsible;
         const wrapper = node(foldable ? "details" : "div", "byYAMLnode");
         const header = node(foldable ? "summary" : "div", "byYAMLheader");
-        if (foldable) wrapper.open = Boolean(query) || !options.collapsed;
+        if (foldable) wrapper.open = Boolean(query) || !collapsed;
         header.append(node("span", "byYAMLkey", record.label), ": ");
         const value = record.reference
           ? `↪ reference #${record.reference}`
@@ -4320,7 +4333,7 @@ THE SOFTWARE.
               : scalarText(record.value);
         header.appendChild(node("span", `byYAMLvalue byYAML${record.type}`, value));
         if (!containerType(record.value) && record.type !== "entry") header.appendChild(node("small", "byYAMLtype", record.type));
-        if (options.copyValues !== false && record.type !== "entry") copyButton(header, () => copyYAML(record.value), "Copy YAML value", "Copy value");
+        if (copyValues && record.type !== "entry") copyButton(header, () => copyYAML(record.value), "Copy YAML value", "Copy value");
         wrapper.appendChild(header);
         if (hasChildren) {
           const children = node("div", "byYAMLchildren");
@@ -4336,7 +4349,7 @@ THE SOFTWARE.
       if (!state.active || generation !== version) return false;
       // Commit only a complete tree; canceled passes never expose partial results.
       tree.replaceChildren(fragment);
-      status.hidden = options.statusBar === false && records.length > 0 && (!query || matches > 0);
+      status.hidden = !statusBar && records.length > 0 && (!query || matches > 0);
       status.textContent = records.length ? (query ? `${matches} matching nodes` : `${records.length} nodes (shared containers appear as references)`) : "No YAML documents.";
       element.setAttribute("aria-busy", "false");
       return true;
