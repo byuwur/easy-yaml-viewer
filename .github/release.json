@@ -1,5 +1,5 @@
 {
-  "repository": "byuwur/easy-yaml-viewer",
+  "repository": "byuwur/yaml.view",
   "branch": "main",
   "kind": "easy",
   "runtime": ["yaml.js", "yaml.css", "yaml.themes.css"],

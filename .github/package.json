@@ -1,5 +1,5 @@
 {
-  "name": "easy-yaml-viewer-release",
+  "name": "yaml.view",
   "private": true,
   "engines": {
     "node": ">=22"

@@ -1,9 +1,9 @@
 "use strict";
 /*
  * File: yaml.js
- * Desc: Standalone YAML viewer. No runtime dependencies.
+ * Desc: Standalone YAML.view. No runtime dependencies.
  * Copyright (c) 2026 Andres Trujillo [Mateus] byUwUr
- * https://github.com/byuwur/easy-yaml-viewer
+ * https://github.com/byuwur/yaml.view
  * MIT License (see LICENSE).
  */
 (function (global) {
@@ -3919,8 +3919,8 @@ THE SOFTWARE.
     const document = element.ownerDocument;
     if (document.defaultView.getComputedStyle(document.documentElement).getPropertyValue("--by-yaml-themes-loaded").trim() === "1") return;
     warnedPalettes.add(palette);
-    // console.warn(`easy-yaml-viewer: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://byuwur.github.io/easy-yaml-viewer/`);
-    console.warn(`easy-yaml-viewer: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://yaml.byuwur.co/`);
+    // console.warn(`YAML.view: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://byuwur.github.io/yaml.view/`);
+    console.warn(`YAML.view: Palette "${palette}" requires yaml.themes.css. Import it after yaml.css. https://yaml.byuwur.co/`);
   };
 
   // Explicit appearance options override markup; omitted values preserve the container's state.
@@ -4226,7 +4226,7 @@ THE SOFTWARE.
     toolbar.dataset.size = ["xs", "small", "regular", "large", "xl"].includes(options.controlsSize) ? options.controlsSize : "regular";
     const info = node("small", "byVIEWinfo");
     for (const [text, href] of [
-      ["easy-yaml-viewer", "https://github.com/byuwur/easy-yaml-viewer"],
+      ["YAML.view", "https://github.com/byuwur/yaml.view"],
       ["@byUwUr", "https://byuwur.co"]
     ]) {
       const link = node("a", "", text);
