@@ -11,7 +11,7 @@
   if (global.byYAMLviewer?.initialized) return;
 
   // --- METADATA ---
-  byYAMLviewer.VERSION = "1.5"; // 2026-11-15
+  byYAMLviewer.VERSION = "1.6"; // 2026-11-16
   byYAMLviewer.PARSER_VERSION = "5.4.3"; // 2026-11-04
 
   /* Bundled js-yaml 5.4.3, private and unmodified.
