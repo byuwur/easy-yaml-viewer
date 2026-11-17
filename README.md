@@ -2,6 +2,8 @@
 
 ![YAML.view preview](prev.jpg)
 
+Development version: **v2** (unreleased). The [latest release](https://github.com/byuwur/yaml.view/releases/latest) supplies the published files.
+
 **YAML, give structure clarity.**
 
 Explore mappings, sequences, scalar values, and aliases as a collapsible tree. Complex keys and shared or cyclic aliases keep their meaning.
