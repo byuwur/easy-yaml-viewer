@@ -57,8 +57,8 @@ test("YAML playground loads, updates, and copies a starter", { timeout: 30000 },
   await page.goto("https://playground.test/index.html");
   assert.equal(await page.locator("#latest-release").textContent(), "Latest Release");
   assert.equal(await page.locator("#latest-release").getAttribute("href"), "https://github.com/byuwur/yaml.view/releases/latest");
-  assert.equal(await page.locator("#download-release").getAttribute("href"), "https://github.com/byuwur/yaml.view/releases/download/v2/yaml.view.v2.zip");
-  assert.equal(await page.locator("#download-minified").getAttribute("href"), "https://github.com/byuwur/yaml.view/releases/download/v2/yaml.view.v2.minified.zip");
+  assert.equal(await page.locator("#download-release").getAttribute("href"), "https://github.com/byuwur/yaml.view/releases/latest/download/yaml.view.zip");
+  assert.equal(await page.locator("#download-minified").getAttribute("href"), "https://github.com/byuwur/yaml.view/releases/latest/download/yaml.view.minified.zip");
   const preview = page.frameLocator("#preview-frame").locator(".byYAMLdocument");
   await preview.waitFor();
   await page.locator("#source").fill("message: PLAYGROUND_CORE");
