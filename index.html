@@ -1048,6 +1048,7 @@
           const version = ++sourceVersion;
           event.target.value = "";
           try {
+            if (file.size > 3 * 1024 * 1024) throw new RangeError("Choose a file no larger than 3 MiB.");
             const text = await file.text();
             // Newer edits, samples, and file selections own the source now.
             if (version !== sourceVersion) return;
