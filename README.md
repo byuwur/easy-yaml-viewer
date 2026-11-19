@@ -48,19 +48,11 @@ Open [index.html](index.html) locally. Its host assets use the network. Exported
 
 ## API and options
 
-1. [Parser trade-off](#parser-trade-off)
-2. [API and YAML behavior](#api-and-yaml-behavior)
-3. [YAML options and limits](#yaml-options-and-limits)
+1. [API and YAML behavior](#api-and-yaml-behavior)
+2. [YAML options and limits](#yaml-options-and-limits)
+3. [Parser trade-off](#parser-trade-off)
 4. [Maintaining the embedded parser](#maintaining-the-embedded-parser)
 5. [Shared controls and lifecycle](#shared-controls-and-lifecycle)
-
-### Parser trade-off
-
-`yaml.js` bundles unmodified [js-yaml 5.4.3](https://github.com/nodeca/js-yaml/releases/tag/5.4.3) in a private closure, including its MIT license. This makes it larger than the other viewers, but needs no extra scripts or global `jsyaml`.
-
-Check the parser version with `byYAMLviewer.PARSER_VERSION`.
-
-Uses YAML 1.2 CORE plus merge keys and real JavaScript Maps (`CORE_SCHEMA.withTags(realMapTag, mergeTag)`), preserving complex keys. See [upstream usage](https://github.com/nodeca/js-yaml/blob/5.4.3/docs/usage.md) and [security considerations](https://github.com/nodeca/js-yaml/blob/5.4.3/docs/safety.md).
 
 ### API and YAML behavior
 
@@ -90,6 +82,14 @@ Search matches displayed keys/scalars/types/references and expands ancestor path
 Expand/collapse affects displayed collections only. Limits: 1 million source characters, depth 100, 1,000 aliases per document, 10,000 total processed merge keys, 100 documents, and 50,000 displayed graph records. Shared containers are indexed once; parser-specific limits may reject input sooner.
 
 Parsing/indexing are synchronous; DOM creation yields every 100 nodes and search every 1,000 records. Closed branches retain their DOM descendants.
+
+### Parser trade-off
+
+`yaml.js` bundles unmodified [js-yaml 5.4.3](https://github.com/nodeca/js-yaml/releases/tag/5.4.3) in a private closure, including its MIT license. This makes it larger than the other viewers, but needs no extra scripts or global `jsyaml`.
+
+Check the parser version with `byYAMLviewer.PARSER_VERSION`.
+
+Uses YAML 1.2 CORE plus merge keys and real JavaScript Maps (`CORE_SCHEMA.withTags(realMapTag, mergeTag)`), preserving complex keys. See [upstream usage](https://github.com/nodeca/js-yaml/blob/5.4.3/docs/usage.md) and [security considerations](https://github.com/nodeca/js-yaml/blob/5.4.3/docs/safety.md).
 
 ### Maintaining the embedded parser
 

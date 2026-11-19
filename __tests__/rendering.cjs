@@ -21,6 +21,9 @@ test("YAML library", { timeout: 30000 }, async (t) => {
   page.on("pageerror", (error) => errors.push(error.message));
   // Load authored files directly; CDN availability is not part of this contract.
   await page.route("**/*", (route) => route.abort());
+  // ===============
+  // BROWSER FIXTURE
+  // ===============
   await page.setContent('<!doctype html><meta charset="UTF-8"><div id="viewer"></div>');
   await page.addStyleTag({ path: path.join(__dirname, "../yaml.css") });
   await page.addScriptTag({ path: path.join(__dirname, "../yaml.js") });
@@ -28,12 +31,20 @@ test("YAML library", { timeout: 30000 }, async (t) => {
     window.root = document.getElementById("viewer");
   });
 
+  // ==================
+  // RENDERING BEHAVIOR
+  // ==================
   await t.test("parses typed values and aliases and renders the tree", async () => {
     const result = await page.evaluate(async () => {
       const source = "base: &base {enabled: true, retries: 3}\ncopy: *base\ntext: |\n  first\n  second\n";
       const doc = byYAMLviewer.parse(source)[0];
       const ready = await byYAMLviewer(root, source, { animations: false }).ready;
-      return { ready, alias: doc.get("base") === doc.get("copy"), enabled: doc.get("base").get("enabled"), text: doc.get("text") };
+      return {
+        ready,
+        alias: doc.get("base") === doc.get("copy"),
+        enabled: doc.get("base").get("enabled"),
+        text: doc.get("text")
+      };
     });
     assert.deepEqual(result, { ready: true, alias: true, enabled: true, text: "first\nsecond\n" });
     assert.match(await page.locator(".byYAMLtree").textContent(), /retries/);
@@ -44,7 +55,12 @@ test("YAML library", { timeout: 30000 }, async (t) => {
       const malformed = await byYAMLviewer(root, "a: [unclosed").ready;
       const tag = await byYAMLviewer(root, 'x: !!js/function "function(){window.injected=1}"').ready;
       await byYAMLviewer(root, 'x: "<img src=x onerror=window.injected=1>"').ready;
-      return { malformed, tag, images: root.querySelectorAll("img").length, injected: Boolean(window.injected) };
+      return {
+        malformed,
+        tag,
+        images: root.querySelectorAll("img").length,
+        injected: Boolean(window.injected)
+      };
     });
     assert.deepEqual(result, { malformed: false, tag: false, images: 0, injected: false });
   });
