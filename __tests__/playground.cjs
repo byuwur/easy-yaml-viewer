@@ -120,7 +120,6 @@ test("YAML playground loads, updates, and copies a starter", { timeout: 30000 },
   );
   assert.ok(sizes.minimumDisabled && sizes.maximumDisabled && sizes.restored && sizes.stableFrame);
 
-  await page.evaluate(() => spaReady);
   const originalText = await preview.locator(".byYAMLkey").first().elementHandle();
   const toolbar = await preview.locator(".byVIEWtoolbar").elementHandle();
   const content = await preview.locator(":scope > .byVIEWcontent").elementHandle();
