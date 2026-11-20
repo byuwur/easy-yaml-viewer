@@ -283,7 +283,7 @@ THE SOFTWARE.
     //#region src/tag/scalar/int_yaml11.ts
     var YAML_INTEGER_PATTERN = /* @__PURE__ */ new RegExp("^(?:[-+]?0b[0-1_]+|[-+]?0[0-7_]+|[-+]?0x[0-9a-fA-F_]+|[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+|[-+]?(?:0|[1-9][0-9_]*))$");
     function parseYamlInteger(source) {
-      let value = source.replace(/_/g, "");
+      let value = source.replaceAll("_", "");
       let sign = 1;
       if (value[0] === "-" || value[0] === "+") {
         if (value[0] === "-") sign = -1;
@@ -385,7 +385,7 @@ THE SOFTWARE.
     var YAML_FLOAT_SPECIAL_PATTERN = /* @__PURE__ */ new RegExp("^(?:[-+]?\\.(?:inf|Inf|INF)|\\.(?:nan|NaN|NAN))$");
     function resolveYamlFloat(source) {
       if (!YAML_FLOAT_PATTERN.test(source)) return NOT_RESOLVED;
-      let value = source.toLowerCase().replace(/_/g, "");
+      let value = source.toLowerCase().replaceAll("_", "");
       const sign = value[0] === "-" ? -1 : 1;
       if ("+-".includes(value[0])) value = value.slice(1);
       if (value === ".inf") return sign === 1 ? Number.POSITIVE_INFINITY : Number.NEGATIVE_INFINITY;
@@ -1532,7 +1532,7 @@ THE SOFTWARE.
       "!!": "tag:yaml.org,2002:"
     });
     function tagPercentEncode(source) {
-      return encodeURI(source).replace(/!/g, "%21");
+      return encodeURI(source).replaceAll("!", "%21");
     }
     function tagNameFull(rawTag, tagHandlers) {
       var _ref, _tagHandlers$handle;
@@ -3121,7 +3121,7 @@ THE SOFTWARE.
       return encodeFlowBreaks(layout.node.value, layout.shiftOfContent);
     }
     function renderSingleQuoted(layout) {
-      return `'${encodeFlowBreaks(layout.node.value, layout.shiftOfContent).replace(/'/g, "''")}'`;
+      return `'${encodeFlowBreaks(layout.node.value, layout.shiftOfContent).replaceAll("'", "''")}'`;
     }
     function renderLiteralBlock(layout) {
       const value = layout.node.value;
