@@ -11,7 +11,7 @@
   if (global.byYAMLviewer?.initialized) return;
 
   // ===== METADATA =====
-  byYAMLviewer.VERSION = "2.2"; // 2026-11-20
+  byYAMLviewer.VERSION = "2.3"; // 2026-11-20
   // Mirrored helpers are checked by code.view/.github/scripts/check-family.mjs.
   const componentName = "YAML.view";
   const themeFile = "yaml";
