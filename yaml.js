@@ -7,14 +7,10 @@
  * MIT License (see LICENSE).
  */
 (function (global) {
-  // ==============
-  // INITIALIZATION
-  // ==============
+  // ===== INITIALIZATION =====
   if (global.byYAMLviewer?.initialized) return;
 
-  // ==========
-  // METADATA
-  // ==========
+  // ===== METADATA =====
   byYAMLviewer.VERSION = "2.1"; // 2026-11-18
   byYAMLviewer.PARSER_VERSION = "5.4.3"; // 2026-11-04
 
@@ -42,9 +38,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
   */
-  // ===============
-  // EMBEDDED PARSER
-  // ===============
+  // ===== EMBEDDED PARSER =====
   const YAMLparser = (() => {
     const exports = {};
     /*! js-yaml 5.4.3 https://github.com/nodeca/js-yaml @license MIT */
@@ -3825,9 +3819,7 @@ THE SOFTWARE.
   // Preserve complex mapping keys as Maps while limiting tags to the core schema and merge support.
   const yamlSchema = YAMLparser.CORE_SCHEMA.withTags(YAMLparser.realMapTag, YAMLparser.mergeTag);
 
-  // ==========
-  // STATE
-  // ==========
+  // ===== STATE =====
   const instances = new WeakMap();
   // --- HELPERS ---
   const node = (tag, className = "", text) => {
@@ -4182,9 +4174,7 @@ THE SOFTWARE.
   // Copy strings exactly; serialize other values semantically rather than claiming to preserve YAML spelling.
   const copyYAML = (value) => (typeof value === "string" ? value : containerType(value) ? YAMLparser.dump(value, { schema: yamlSchema }) : scalarText(value));
 
-  // ==========
-  // LIFECYCLE
-  // ==========
+  // ===== LIFECYCLE =====
   // One instance owns the container; replacement disposes its pending work first.
   // Replace the previous owner and return its cancellable state. Only the current owner may clear the host.
   const mount = (element, options, getText) => {
@@ -4308,9 +4298,7 @@ THE SOFTWARE.
     state.content.append(actions, panel);
     let records = [],
       generation = 0;
-    // ==========
-    // RENDERING
-    // ==========
+    // ===== RENDERING =====
     const render = async () => {
       // Each search supersedes earlier passes paused at cooperative checkpoints.
       const version = ++generation,

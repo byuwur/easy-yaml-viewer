@@ -5,12 +5,8 @@
   --by-yaml-themes-loaded: 1;
 }
 
-/* ==========
- * THEMES
- * ========== */
-/* ==========
- * DRACULA
- * ========== */
+/* ===== THEMES ===== */
+/* ===== DRACULA ===== */
 
 .byYAMLdocument[data-theme="dracula"]:not(.dark) {
   --by-view-muted: #635f70;
@@ -38,9 +34,7 @@
   --by-view-error: #ff8080;
 }
 
-/* ==========
- * DARCULA
- * ========== */
+/* ===== DARCULA ===== */
 
 .byYAMLdocument[data-theme="darcula"]:not(.dark) {
   --by-view-muted: #65615e;
@@ -68,9 +62,7 @@
   --by-view-error: #ff817f;
 }
 
-/* ==========
- * NORD
- * ========== */
+/* ===== NORD ===== */
 
 .byYAMLdocument[data-theme="nord"]:not(.dark) {
   --by-view-muted: #536174;
@@ -98,9 +90,7 @@
   --by-view-error: #d9a2a7;
 }
 
-/* ==========
- * CATPPUCCIN
- * ========== */
+/* ===== CATPPUCCIN ===== */
 
 .byYAMLdocument[data-theme="catppuccin"]:not(.dark) {
   --by-view-muted: #616478;
@@ -128,9 +118,7 @@
   --by-view-error: #f38ba8;
 }
 
-/* =================
- * CATPPUCCIN FRAPPÉ
- * ================= */
+/* ===== CATPPUCCIN FRAPPÉ ===== */
 
 .byYAMLdocument[data-theme="catppuccin-frappe"]:not(.dark) {
   --by-view-muted: #616478;
@@ -158,9 +146,7 @@
   --by-view-error: #ed9fa0;
 }
 
-/* ====================
- * CATPPUCCIN MACCHIATO
- * ==================== */
+/* ===== CATPPUCCIN MACCHIATO ===== */
 
 .byYAMLdocument[data-theme="catppuccin-macchiato"]:not(.dark) {
   --by-view-muted: #616478;
@@ -188,9 +174,7 @@
   --by-view-error: #ed8796;
 }
 
-/* ==========
- * ROSÉ PINE
- * ========== */
+/* ===== ROSÉ PINE ===== */
 
 .byYAMLdocument[data-theme="rose-pine"]:not(.dark) {
   --by-view-muted: #68657e;
@@ -218,9 +202,7 @@
   --by-view-error: #eb6f92;
 }
 
-/* ==============
- * ROSÉ PINE MOON
- * ============== */
+/* ===== ROSÉ PINE MOON ===== */
 
 .byYAMLdocument[data-theme="rose-pine-moon"]:not(.dark) {
   --by-view-muted: #68657e;
@@ -248,9 +230,7 @@
   --by-view-error: #ed7b9b;
 }
 
-/* ==========
- * GRUVBOX
- * ========== */
+/* ===== GRUVBOX ===== */
 
 .byYAMLdocument[data-theme="gruvbox"]:not(.dark) {
   --by-view-muted: #6b5f56;
@@ -278,9 +258,7 @@
   --by-view-error: #fc8071;
 }
 
-/* ================
- * GRUVBOX MATERIAL
- * ================ */
+/* ===== GRUVBOX MATERIAL ===== */
 
 .byYAMLdocument[data-theme="gruvbox-material"]:not(.dark) {
   --by-view-muted: #665b52;
@@ -308,9 +286,7 @@
   --by-view-error: #ee8883;
 }
 
-/* ===========
- * TOKYO NIGHT
- * =========== */
+/* ===== TOKYO NIGHT ===== */
 
 .byYAMLdocument[data-theme="tokyo-night"]:not(.dark) {
   --by-view-muted: #545c75;
@@ -338,9 +314,7 @@
   --by-view-error: #f7768e;
 }
 
-/* ===========
- * TOKYO STORM
- * =========== */
+/* ===== TOKYO STORM ===== */
 
 .byYAMLdocument[data-theme="tokyo-storm"]:not(.dark) {
   --by-view-muted: #57607a;
@@ -368,9 +342,7 @@
   --by-view-error: #f88096;
 }
 
-/* ==========
- * TOKYO MOON
- * ========== */
+/* ===== TOKYO MOON ===== */
 
 .byYAMLdocument[data-theme="tokyo-moon"]:not(.dark) {
   --by-view-muted: #605d7b;
@@ -398,9 +370,7 @@
   --by-view-error: #ff757f;
 }
 
-/* ==========
- * ONE
- * ========== */
+/* ===== ONE ===== */
 
 .byYAMLdocument[data-theme="one"]:not(.dark) {
   --by-view-muted: #676a75;
@@ -428,9 +398,7 @@
   --by-view-error: #e89198;
 }
 
-/* ==========
- * MATERIAL
- * ========== */
+/* ===== MATERIAL ===== */
 
 .byYAMLdocument[data-theme="material"]:not(.dark) {
   --by-view-muted: #546e7a;
@@ -458,9 +426,7 @@
   --by-view-error: #f39297;
 }
 
-/* ==============
- * MATERIAL OCEAN
- * ============== */
+/* ===== MATERIAL OCEAN ===== */
 
 .byYAMLdocument[data-theme="material-ocean"]:not(.dark) {
   --by-view-muted: #5a687d;
@@ -488,9 +454,7 @@
   --by-view-error: #ff5370;
 }
 
-/* ==========
- * NIGHT OWL
- * ========== */
+/* ===== NIGHT OWL ===== */
 
 .byYAMLdocument[data-theme="night-owl"]:not(.dark) {
   --by-view-muted: #656575;
@@ -518,9 +482,7 @@
   --by-view-error: #f16462;
 }
 
-/* ==========
- * SYNTHWAVE
- * ========== */
+/* ===== SYNTHWAVE ===== */
 
 .byYAMLdocument[data-theme="synthwave"]:not(.dark) {
   --by-view-muted: #7f4d80;
@@ -548,9 +510,7 @@
   --by-view-error: #fe767f;
 }
 
-/* ==========
- * AYU
- * ========== */
+/* ===== AYU ===== */
 
 .byYAMLdocument[data-theme="ayu"]:not(.dark) {
   --by-view-muted: #686b6f;
@@ -578,9 +538,7 @@
   --by-view-error: #f07178;
 }
 
-/* ==========
- * EVERFOREST
- * ========== */
+/* ===== EVERFOREST ===== */
 
 .byYAMLdocument[data-theme="everforest"]:not(.dark) {
   --by-view-muted: #5d6a72;
@@ -608,9 +566,7 @@
   --by-view-error: #ec9c9d;
 }
 
-/* ==========
- * KANAGAWA
- * ========== */
+/* ===== KANAGAWA ===== */
 
 .byYAMLdocument[data-theme="kanagawa"]:not(.dark) {
   --by-view-muted: #5f5f5c;
@@ -638,9 +594,7 @@
   --by-view-error: #f17575;
 }
 
-/* ==========
- * SELENIZED
- * ========== */
+/* ===== SELENIZED ===== */
 
 .byYAMLdocument[data-theme="selenized"]:not(.dark) {
   --by-view-muted: #56696f;
@@ -668,9 +622,7 @@
   --by-view-error: #fc9994;
 }
 
-/* ==========
- * VS CODE
- * ========== */
+/* ===== VS CODE ===== */
 
 .byYAMLdocument[data-theme="vscode"]:not(.dark) {
   --by-view-muted: #686868;
@@ -698,9 +650,7 @@
   --by-view-error: #f48771;
 }
 
-/* ==============
- * MONOKAI DIMMED
- * ============== */
+/* ===== MONOKAI DIMMED ===== */
 
 .byYAMLdocument[data-theme="monokai-dimmed"]:not(.dark) {
   --by-view-muted: #68685f;
@@ -728,9 +678,7 @@
   --by-view-error: #da8089;
 }
 
-/* ==========
- * DISCORD
- * ========== */
+/* ===== DISCORD ===== */
 
 .byYAMLdocument[data-theme="discord"]:not(.dark) {
   --by-view-muted: #606773;
@@ -758,9 +706,7 @@
   --by-view-error: #ff9094;
 }
 
-/* ==========
- * SLACK
- * ========== */
+/* ===== SLACK ===== */
 
 .byYAMLdocument[data-theme="slack"]:not(.dark) {
   --by-view-muted: #765677;
@@ -788,9 +734,7 @@
   --by-view-error: #ff96ad;
 }
 
-/* ==========
- * BONYUR
- * ========== */
+/* ===== BONYUR ===== */
 
 .byYAMLdocument[data-theme="bonyur"]:not(.dark) {
   --by-view-muted: #606b68;
@@ -818,9 +762,7 @@
   --by-view-error: #ff859c;
 }
 
-/* ==========
- * SAKURA
- * ========== */
+/* ===== SAKURA ===== */
 
 .byYAMLdocument[data-theme="sakura"]:not(.dark) {
   --by-view-muted: #88586e;
@@ -848,9 +790,7 @@
   --by-view-error: #ff879f;
 }
 
-/* ==========
- * BUBBLEGUM
- * ========== */
+/* ===== BUBBLEGUM ===== */
 
 .byYAMLdocument[data-theme="bubblegum"]:not(.dark) {
   --by-view-muted: #824c6e;
@@ -878,9 +818,7 @@
   --by-view-error: #ff9caa;
 }
 
-/* ==========
- * CANDY
- * ========== */
+/* ===== CANDY ===== */
 
 .byYAMLdocument[data-theme="candy"]:not(.dark) {
   --by-view-muted: #7a5a80;
@@ -908,9 +846,7 @@
   --by-view-error: #ff98ba;
 }
 
-/* ==========
- * ROSE GOLD
- * ========== */
+/* ===== ROSE GOLD ===== */
 
 .byYAMLdocument[data-theme="rose-gold"]:not(.dark) {
   --by-view-muted: #7c5e55;
@@ -938,9 +874,7 @@
   --by-view-error: #ff93a1;
 }
 
-/* ==========
- * LAVENDER
- * ========== */
+/* ===== LAVENDER ===== */
 
 .byYAMLdocument[data-theme="lavender"]:not(.dark) {
   --by-view-muted: #6e5d84;
@@ -968,9 +902,7 @@
   --by-view-error: #ff9fbd;
 }
 
-/* ==========
- * CYBERPUNK
- * ========== */
+/* ===== CYBERPUNK ===== */
 
 .byYAMLdocument[data-theme="cyberpunk"]:not(.dark) {
   --by-view-muted: #6f6844;
@@ -998,9 +930,7 @@
   --by-view-error: #ff8a98;
 }
 
-/* ==========
- * SUNSET
- * ========== */
+/* ===== SUNSET ===== */
 
 .byYAMLdocument[data-theme="sunset"]:not(.dark) {
   --by-view-muted: #825c46;
@@ -1028,9 +958,7 @@
   --by-view-error: #ff8f8a;
 }
 
-/* ==========
- * VOLCANO
- * ========== */
+/* ===== VOLCANO ===== */
 
 .byYAMLdocument[data-theme="volcano"]:not(.dark) {
   --by-view-muted: #7e5b54;
@@ -1058,9 +986,7 @@
   --by-view-error: #ff8a97;
 }
 
-/* ==========
- * AMBER
- * ========== */
+/* ===== AMBER ===== */
 
 .byYAMLdocument[data-theme="amber"]:not(.dark) {
   --by-view-muted: #74633f;
@@ -1088,9 +1014,7 @@
   --by-view-error: #ff9c8d;
 }
 
-/* ==========
- * TERMINAL
- * ========== */
+/* ===== TERMINAL ===== */
 
 .byYAMLdocument[data-theme="terminal"]:not(.dark) {
   --by-view-muted: #497055;
@@ -1118,9 +1042,7 @@
   --by-view-error: #ff9a9a;
 }
 
-/* ==========
- * PAPER
- * ========== */
+/* ===== PAPER ===== */
 
 .byYAMLdocument[data-theme="paper"]:not(.dark) {
   --by-view-muted: #766657;
@@ -1148,9 +1070,7 @@
   --by-view-error: #f29494;
 }
 
-/* ==========
- * INK
- * ========== */
+/* ===== INK ===== */
 
 .byYAMLdocument[data-theme="ink"]:not(.dark) {
   --by-view-muted: #686868;
@@ -1178,9 +1098,7 @@
   --by-view-error: #ef9da8;
 }
 
-/* ==========
- * OCEAN
- * ========== */
+/* ===== OCEAN ===== */
 
 .byYAMLdocument[data-theme="ocean"]:not(.dark) {
   --by-view-muted: #506c7b;
@@ -1208,9 +1126,7 @@
   --by-view-error: #ff9fac;
 }
 
-/* ==========
- * FOREST
- * ========== */
+/* ===== FOREST ===== */
 
 .byYAMLdocument[data-theme="forest"]:not(.dark) {
   --by-view-muted: #5b6a58;
@@ -1238,9 +1154,7 @@
   --by-view-error: #f19da4;
 }
 
-/* ==========
- * MINT
- * ========== */
+/* ===== MINT ===== */
 
 .byYAMLdocument[data-theme="mint"]:not(.dark) {
   --by-view-muted: #516e64;
@@ -1268,9 +1182,7 @@
   --by-view-error: #ff9fb8;
 }
 
-/* ==========
- * ICE
- * ========== */
+/* ===== ICE ===== */
 
 .byYAMLdocument[data-theme="ice"]:not(.dark) {
   --by-view-muted: #546c78;
@@ -1298,9 +1210,7 @@
   --by-view-error: #ff9fb8;
 }
 
-/* ==========
- * SEPIA
- * ========== */
+/* ===== SEPIA ===== */
 
 .byYAMLdocument[data-theme="sepia"]:not(.dark) {
   --by-view-muted: #6d5b44;
